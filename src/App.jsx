@@ -44,10 +44,13 @@ async function sendOrder(orderData) {
 
 function App() {
   const [service, setService] = useState("topup");
+
   const [selectedGame, setSelectedGame] = useState("");
   const [selectedNominal, setSelectedNominal] = useState("");
+
   const [selectedJokiGame, setSelectedJokiGame] = useState("");
   const [selectedRank, setSelectedRank] = useState("");
+
   const [selectedAkun, setSelectedAkun] = useState(null);
 
   const [nickname, setNickname] = useState("");
@@ -215,23 +218,28 @@ function App() {
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 relative overflow-hidden">
+
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 left-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl" />
         <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
       </div>
 
+      {/* HEADER */}
       <header className="relative z-10 border-b border-slate-800 bg-slate-950/80 backdrop-blur">
         <div className="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
+
           <div>
             <h1 className="text-2xl font-bold">
               Barr<span className="text-cyan-400">Store</span>
             </h1>
+
             <p className="text-xs text-slate-400">
               Top Up • Joki • Jual Beli Akun
             </p>
           </div>
 
           <div className="flex items-center gap-3">
+
             {username && (
               <span className="text-sm text-slate-300">
                 Halo, {username}
@@ -244,12 +252,16 @@ function App() {
             >
               Admin
             </button>
+
           </div>
         </div>
       </header>
 
+      {/* MAIN */}
       <main className="relative z-10 max-w-6xl mx-auto px-6 py-10">
+
         <div className="text-center mb-10">
+
           <h2 className="text-4xl font-black mb-3">
             Mau <span className="text-cyan-400">apa</span> hari ini?
           </h2>
@@ -257,9 +269,12 @@ function App() {
           <p className="text-slate-400">
             Pilih layanan game yang lu butuhin.
           </p>
+
         </div>
 
+        {/* SERVICE */}
         <div className="grid md:grid-cols-3 gap-4 mb-8">
+
           <button
             onClick={() => {
               setService("topup");
@@ -272,7 +287,11 @@ function App() {
             }`}
           >
             <div className="text-3xl mb-2">💎</div>
-            <h3 className="font-bold">Top Up Game</h3>
+
+            <h3 className="font-bold">
+              Top Up Game
+            </h3>
+
             <p className="text-sm text-slate-400">
               Isi diamond, UC, VP dan lainnya.
             </p>
@@ -290,7 +309,11 @@ function App() {
             }`}
           >
             <div className="text-3xl mb-2">🏆</div>
-            <h3 className="font-bold">Joki Game</h3>
+
+            <h3 className="font-bold">
+              Joki Game
+            </h3>
+
             <p className="text-sm text-slate-400">
               Naikin rank game lu.
             </p>
@@ -308,19 +331,31 @@ function App() {
             }`}
           >
             <div className="text-3xl mb-2">🎮</div>
-            <h3 className="font-bold">Jual Beli Akun</h3>
+
+            <h3 className="font-bold">
+              Jual Beli Akun
+            </h3>
+
             <p className="text-sm text-slate-400">
               Cari akun game yang cocok.
             </p>
           </button>
+
         </div>
 
+        {/* CONTENT */}
         <div className="bg-slate-800/70 border border-slate-700 rounded-3xl p-6 md:p-8">
+
+          {/* TOP UP */}
           {service === "topup" && (
             <div>
-              <h3 className="text-2xl font-bold mb-6">Top Up Game</h3>
+
+              <h3 className="text-2xl font-bold mb-6">
+                Top Up Game
+              </h3>
 
               <div className="grid md:grid-cols-2 gap-5">
+
                 <div>
                   <label className="block text-sm text-slate-400 mb-2">
                     Pilih Game
@@ -334,7 +369,9 @@ function App() {
                     }}
                     className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 outline-none focus:border-cyan-400"
                   >
-                    <option value="">Pilih game</option>
+                    <option value="">
+                      Pilih game
+                    </option>
 
                     {GAMES.map((game) => (
                       <option key={game.id} value={game.id}>
@@ -355,7 +392,9 @@ function App() {
                     disabled={!selectedGame}
                     className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 outline-none focus:border-cyan-400 disabled:opacity-50"
                   >
-                    <option value="">Pilih nominal</option>
+                    <option value="">
+                      Pilih nominal
+                    </option>
 
                     {(NOMINALS[selectedGame] || []).map((item) => (
                       <option key={item.label} value={item.label}>
@@ -416,6 +455,7 @@ function App() {
                     className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 outline-none focus:border-cyan-400"
                   />
                 </div>
+
               </div>
 
               <button
@@ -425,14 +465,21 @@ function App() {
               >
                 {loading ? "Mengirim..." : "Pesan Sekarang"}
               </button>
+
             </div>
           )}
 
+          {/* JOKI */}
           {service === "joki" && (
             <div>
-              <h3 className="text-2xl font-bold mb-6">Joki Game</h3>
+
+              <h3 className="text-2xl font-bold mb-6">
+                Joki Game
+              </h3>
 
               <div className="grid md:grid-cols-2 gap-5">
+
+                {/* GAME */}
                 <div>
                   <label className="block text-sm text-slate-400 mb-2">
                     Pilih Game
@@ -446,7 +493,9 @@ function App() {
                     }}
                     className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 outline-none focus:border-purple-400"
                   >
-                    <option value="">Pilih game</option>
+                    <option value="">
+                      Pilih game
+                    </option>
 
                     {JOKI_GAMES.map((game) => (
                       <option key={game.id} value={game.id}>
@@ -456,6 +505,7 @@ function App() {
                   </select>
                 </div>
 
+                {/* RANK + HARGA */}
                 <div>
                   <label className="block text-sm text-slate-400 mb-2">
                     Target Rank
@@ -467,16 +517,21 @@ function App() {
                     disabled={!selectedJokiGame}
                     className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 outline-none focus:border-purple-400 disabled:opacity-50"
                   >
-                    <option value="">Pilih rank</option>
+                    <option value="">
+                      Pilih rank
+                    </option>
 
                     {(currentJokiGame?.ranks || []).map((rank) => (
                       <option key={rank} value={rank}>
-                        {rank}
+                        {rank} — {formatRp(
+                          JOKI_PRICE_PER_TIER[selectedJokiGame] || 0
+                        )}
                       </option>
                     ))}
                   </select>
                 </div>
 
+                {/* NICKNAME */}
                 <div>
                   <label className="block text-sm text-slate-400 mb-2">
                     Nickname
@@ -490,6 +545,7 @@ function App() {
                   />
                 </div>
 
+                {/* USER ID */}
                 <div>
                   <label className="block text-sm text-slate-400 mb-2">
                     User ID
@@ -503,6 +559,7 @@ function App() {
                   />
                 </div>
 
+                {/* WHATSAPP */}
                 <div>
                   <label className="block text-sm text-slate-400 mb-2">
                     WhatsApp
@@ -516,6 +573,7 @@ function App() {
                   />
                 </div>
 
+                {/* CATATAN */}
                 <div>
                   <label className="block text-sm text-slate-400 mb-2">
                     Catatan
@@ -528,16 +586,35 @@ function App() {
                     className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 outline-none focus:border-purple-400"
                   />
                 </div>
+
               </div>
 
+              {/* DETAIL HARGA */}
               {selectedRank && (
-                <div className="mt-6 p-4 rounded-xl bg-purple-500/10 border border-purple-500/30">
-                  <div className="flex justify-between">
-                    <span>Harga joki</span>
-                    <span className="font-bold">
-                      {formatRp(jokiPrice)}
-                    </span>
+                <div className="mt-6 p-5 rounded-2xl bg-purple-500/10 border border-purple-500/30">
+
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="text-sm text-slate-400">
+                        Target Rank
+                      </p>
+
+                      <p className="text-lg font-bold">
+                        {selectedRank}
+                      </p>
+                    </div>
+
+                    <div className="text-right">
+                      <p className="text-sm text-slate-400">
+                        Harga Joki
+                      </p>
+
+                      <p className="text-xl font-black text-purple-400">
+                        {formatRp(jokiPrice)}
+                      </p>
+                    </div>
                   </div>
+
                 </div>
               )}
 
@@ -548,14 +625,20 @@ function App() {
               >
                 {loading ? "Mengirim..." : "Pesan Joki"}
               </button>
+
             </div>
           )}
 
+          {/* AKUN */}
           {service === "akun" && (
             <div>
-              <h3 className="text-2xl font-bold mb-6">Jual Beli Akun</h3>
+
+              <h3 className="text-2xl font-bold mb-6">
+                Jual Beli Akun
+              </h3>
 
               <div className="grid md:grid-cols-3 gap-4">
+
                 {AKUN_LIST.map((akun) => (
                   <button
                     key={akun.id}
@@ -566,6 +649,7 @@ function App() {
                         : "border-slate-700 bg-slate-900/60 hover:bg-slate-900"
                     }`}
                   >
+
                     <div className="text-sm text-yellow-400 font-semibold mb-2">
                       {akun.game}
                     </div>
@@ -585,12 +669,15 @@ function App() {
                     <div className="mt-4 font-bold text-yellow-400">
                       {formatRp(akun.price)}
                     </div>
+
                   </button>
                 ))}
+
               </div>
 
               {selectedAkun && (
                 <div className="mt-6 grid md:grid-cols-2 gap-5">
+
                   <div>
                     <label className="block text-sm text-slate-400 mb-2">
                       WhatsApp
@@ -616,6 +703,7 @@ function App() {
                       className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 outline-none focus:border-yellow-400"
                     />
                   </div>
+
                 </div>
               )}
 
@@ -626,22 +714,29 @@ function App() {
               >
                 {loading ? "Mengirim..." : "Beli Akun"}
               </button>
+
             </div>
           )}
 
+          {/* MESSAGE */}
           {message && (
             <div className="mt-6 p-4 rounded-xl bg-slate-900 border border-slate-700 text-center">
               {message}
             </div>
           )}
+
         </div>
       </main>
 
+      {/* FOOTER */}
       <footer className="relative z-10 border-t border-slate-800 mt-12">
+
         <div className="max-w-6xl mx-auto px-6 py-6 text-center text-sm text-slate-500">
-          © 2026 BarrStore — Top Up, Joki & Akun Game
+          © 2027 BarrStore — Top Up, Joki & Akun Game
         </div>
+
       </footer>
+
     </div>
   );
 }
