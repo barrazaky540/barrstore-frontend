@@ -1,15 +1,27 @@
+```jsx
 import { useState, useEffect } from "react";
 import {
   GAMES,
   NOMINALS,
   JOKI_GAMES,
-  JOKI_PRICE_PER_TIER,
   AKUN_LIST,
   formatRp
 } from "./data";
 import Admin from "./Admin";
 
 const API_URL = "https://barrstore-backend-bhjj.vercel.app";
+
+// Harga per 1 tingkat rank
+const JOKI_BASE_PRICE = {
+  ml: 10000,
+  ff: 10000,
+  pubg: 12000,
+  valo: 15000,
+  genshin: 10000,
+  codm: 10000,
+  hok: 10000,
+  aov: 10000
+};
 
 async function sendOrder(orderData) {
   const response = await fetch(`${API_URL}/api/orders`, {
@@ -49,6 +61,7 @@ function App() {
   const [selectedNominal, setSelectedNominal] = useState("");
 
   const [selectedJokiGame, setSelectedJokiGame] = useState("");
+  const [currentRank, setCurrentRank] = useState("");
   const [selectedRank, setSelectedRank] = useState("");
 
   const [selectedAkun, setSelectedAkun] = useState(null);
@@ -75,14 +88,40 @@ function App() {
     }
   }, []);
 
+  // =========================
+  // DATA JOKI
+  // =========================
+
   const currentJokiGame = JOKI_GAMES.find(
     (game) => game.id === selectedJokiGame
   );
 
-  const jokiPrice =
-    selectedJokiGame && selectedRank
-      ? JOKI_PRICE_PER_TIER[selectedJokiGame] || 0
+  const ranks = currentJokiGame?.ranks || [];
+
+  const currentRankIndex = ranks.indexOf(currentRank);
+
+  const targetRanks = ranks.filter(
+    (_, index) => index > currentRankIndex
+  );
+
+  const selectedRankIndex = ranks.indexOf(selectedRank);
+
+  const tierDifference =
+    currentRankIndex >= 0 && selectedRankIndex >= 0
+      ? selectedRankIndex - currentRankIndex
       : 0;
+
+  const basePrice =
+    JOKI_BASE_PRICE[selectedJokiGame] || 10000;
+
+  const jokiPrice =
+    tierDifference > 0
+      ? tierDifference * basePrice
+      : 0;
+
+  // =========================
+  // TOP UP
+  // =========================
 
   const selectedNominalData = NOMINALS[selectedGame]?.find(
     (item) => item.label === selectedNominal
@@ -129,9 +168,22 @@ function App() {
     }
   }
 
+  // =========================
+  // JOKI
+  // =========================
+
   async function handleJoki() {
-    if (!selectedJokiGame || !selectedRank) {
-      setMessage("Pilih game dan rank terlebih dahulu.");
+    if (!selectedJokiGame || !currentRank || !selectedRank) {
+      setMessage(
+        "Pilih game, rank saat ini, dan target rank terlebih dahulu."
+      );
+      return;
+    }
+
+    if (tierDifference <= 0) {
+      setMessage(
+        "Target rank harus lebih tinggi dari rank saat ini."
+      );
       return;
     }
 
@@ -148,7 +200,7 @@ function App() {
         username,
         service: "joki",
         game: selectedJokiGame,
-        nominal: selectedRank,
+        nominal: `${currentRank} → ${selectedRank}`,
         price: jokiPrice,
         status: "pending",
         nickname,
@@ -167,6 +219,10 @@ function App() {
       setLoading(false);
     }
   }
+
+  // =========================
+  // AKUN
+  // =========================
 
   async function handleAkun() {
     if (!selectedAkun) {
@@ -207,6 +263,10 @@ function App() {
     }
   }
 
+  // =========================
+  // ADMIN
+  // =========================
+
   if (showAdmin) {
     return (
       <Admin
@@ -219,6 +279,7 @@ function App() {
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 relative overflow-hidden">
 
+      {/* BACKGROUND */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 left-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl" />
         <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
@@ -275,6 +336,7 @@ function App() {
         {/* SERVICE */}
         <div className="grid md:grid-cols-3 gap-4 mb-8">
 
+          {/* TOP UP */}
           <button
             onClick={() => {
               setService("topup");
@@ -297,6 +359,7 @@ function App() {
             </p>
           </button>
 
+          {/* JOKI */}
           <button
             onClick={() => {
               setService("joki");
@@ -319,6 +382,7 @@ function App() {
             </p>
           </button>
 
+          {/* AKUN */}
           <button
             onClick={() => {
               setService("akun");
@@ -346,7 +410,10 @@ function App() {
         {/* CONTENT */}
         <div className="bg-slate-800/70 border border-slate-700 rounded-3xl p-6 md:p-8">
 
-          {/* TOP UP */}
+          {/* =========================
+              TOP UP
+          ========================= */}
+
           {service === "topup" && (
             <div>
 
@@ -388,7 +455,9 @@ function App() {
 
                   <select
                     value={selectedNominal}
-                    onChange={(e) => setSelectedNominal(e.target.value)}
+                    onChange={(e) =>
+                      setSelectedNominal(e.target.value)
+                    }
                     disabled={!selectedGame}
                     className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 outline-none focus:border-cyan-400 disabled:opacity-50"
                   >
@@ -469,7 +538,10 @@ function App() {
             </div>
           )}
 
-          {/* JOKI */}
+          {/* =========================
+              JOKI
+          ========================= */}
+
           {service === "joki" && (
             <div>
 
@@ -489,6 +561,7 @@ function App() {
                     value={selectedJokiGame}
                     onChange={(e) => {
                       setSelectedJokiGame(e.target.value);
+                      setCurrentRank("");
                       setSelectedRank("");
                     }}
                     className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 outline-none focus:border-purple-400"
@@ -505,7 +578,34 @@ function App() {
                   </select>
                 </div>
 
-                {/* RANK + HARGA */}
+                {/* RANK SAAT INI */}
+                <div>
+                  <label className="block text-sm text-slate-400 mb-2">
+                    Rank Saat Ini
+                  </label>
+
+                  <select
+                    value={currentRank}
+                    onChange={(e) => {
+                      setCurrentRank(e.target.value);
+                      setSelectedRank("");
+                    }}
+                    disabled={!selectedJokiGame}
+                    className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 outline-none focus:border-purple-400 disabled:opacity-50"
+                  >
+                    <option value="">
+                      Pilih rank saat ini
+                    </option>
+
+                    {ranks.map((rank) => (
+                      <option key={rank} value={rank}>
+                        {rank}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* TARGET RANK */}
                 <div>
                   <label className="block text-sm text-slate-400 mb-2">
                     Target Rank
@@ -513,21 +613,30 @@ function App() {
 
                   <select
                     value={selectedRank}
-                    onChange={(e) => setSelectedRank(e.target.value)}
-                    disabled={!selectedJokiGame}
+                    onChange={(e) =>
+                      setSelectedRank(e.target.value)
+                    }
+                    disabled={!currentRank}
                     className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 outline-none focus:border-purple-400 disabled:opacity-50"
                   >
                     <option value="">
-                      Pilih rank
+                      Pilih target rank
                     </option>
 
-                    {(currentJokiGame?.ranks || []).map((rank) => (
-                      <option key={rank} value={rank}>
-                        {rank} — {formatRp(
-                          JOKI_PRICE_PER_TIER[selectedJokiGame] || 0
-                        )}
-                      </option>
-                    ))}
+                    {targetRanks.map((rank) => {
+                      const targetIndex = ranks.indexOf(rank);
+                      const difference =
+                        targetIndex - currentRankIndex;
+
+                      const price =
+                        difference * basePrice;
+
+                      return (
+                        <option key={rank} value={rank}>
+                          {rank} — {formatRp(price)}
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
 
@@ -555,6 +664,20 @@ function App() {
                     value={userId}
                     onChange={(e) => setUserId(e.target.value)}
                     placeholder="User ID"
+                    className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 outline-none focus:border-purple-400"
+                  />
+                </div>
+
+                {/* SERVER ID */}
+                <div>
+                  <label className="block text-sm text-slate-400 mb-2">
+                    Server ID
+                  </label>
+
+                  <input
+                    value={serverId}
+                    onChange={(e) => setServerId(e.target.value)}
+                    placeholder="Server ID (jika ada)"
                     className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 outline-none focus:border-purple-400"
                   />
                 </div>
@@ -589,11 +712,22 @@ function App() {
 
               </div>
 
-              {/* DETAIL HARGA */}
-              {selectedRank && (
+              {/* DETAIL JOKI */}
+              {selectedRank && tierDifference > 0 && (
                 <div className="mt-6 p-5 rounded-2xl bg-purple-500/10 border border-purple-500/30">
 
-                  <div className="flex justify-between items-center">
+                  <div className="grid md:grid-cols-3 gap-4">
+
+                    <div>
+                      <p className="text-sm text-slate-400">
+                        Rank Saat Ini
+                      </p>
+
+                      <p className="text-lg font-bold">
+                        {currentRank}
+                      </p>
+                    </div>
+
                     <div>
                       <p className="text-sm text-slate-400">
                         Target Rank
@@ -604,15 +738,21 @@ function App() {
                       </p>
                     </div>
 
-                    <div className="text-right">
+                    <div className="md:text-right">
                       <p className="text-sm text-slate-400">
-                        Harga Joki
+                        Total Harga
                       </p>
 
                       <p className="text-xl font-black text-purple-400">
                         {formatRp(jokiPrice)}
                       </p>
                     </div>
+
+                  </div>
+
+                  <div className="mt-4 pt-4 border-t border-purple-500/20 text-sm text-slate-400">
+                    Naik {tierDifference} tingkat rank ×{" "}
+                    {formatRp(basePrice)}
                   </div>
 
                 </div>
@@ -629,7 +769,10 @@ function App() {
             </div>
           )}
 
-          {/* AKUN */}
+          {/* =========================
+              AKUN
+          ========================= */}
+
           {service === "akun" && (
             <div>
 
@@ -742,3 +885,4 @@ function App() {
 }
 
 export default App;
+```
