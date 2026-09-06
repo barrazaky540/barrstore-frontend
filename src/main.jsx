@@ -1,3 +1,4 @@
+```jsx
 import { StrictMode, Component } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
@@ -9,19 +10,23 @@ class ErrorBoundary extends Component {
 
     this.state = {
       hasError: false,
-      error: null,
+      errorMessage: "",
     };
   }
 
   static getDerivedStateFromError(error) {
     return {
       hasError: true,
-      error,
+      errorMessage:
+        error?.message ||
+        "Terjadi kesalahan yang tidak diketahui.",
     };
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error("BarrStore Error:", error);
+    // Detail lengkap tetap masuk console untuk debugging
+    console.error("=== BarrStore Error ===");
+    console.error("Error:", error);
     console.error("Error Info:", errorInfo);
   }
 
@@ -31,55 +36,44 @@ class ErrorBoundary extends Component {
 
   render() {
     if (this.state.hasError) {
-      const errorMessage =
-        this.state.error?.message ||
-        this.state.error?.toString() ||
-        "Unknown error";
-
-      const errorStack = this.state.error?.stack || "";
-
       return (
-        <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center px-6 py-10">
-          <div className="w-full max-w-lg text-center">
-            <div className="text-6xl mb-5">😵</div>
+        <div className="min-h-screen bg-slate-900 text-slate-100 flex items-center justify-center px-5">
+          <div className="w-full max-w-md text-center">
+
+            <div className="text-6xl mb-6">
+              😵
+            </div>
 
             <h1 className="text-2xl font-bold mb-3">
               Waduh, BarrStore lagi error
             </h1>
 
             <p className="text-slate-400 mb-6">
-              Terjadi kesalahan saat menampilkan halaman.
+              Halaman mengalami masalah saat dimuat.
+              Silakan coba muat ulang halaman.
             </p>
 
             <button
               onClick={this.handleReload}
-              className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 font-semibold transition mb-6"
+              className="w-full px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 active:bg-blue-700 font-semibold transition"
             >
               🔄 Muat Ulang
             </button>
 
-            {/* DETAIL ERROR */}
-            <div className="text-left">
-              <p className="text-sm font-semibold text-red-400 mb-2">
-                Detail Error:
+            <div className="mt-6 p-4 rounded-xl bg-slate-800 border border-slate-700 text-left">
+              <p className="text-xs text-slate-500 mb-2">
+                Detail error:
               </p>
 
-              <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 overflow-auto">
-                <p className="text-sm text-red-300 break-words">
-                  {errorMessage}
-                </p>
-
-                {errorStack && (
-                  <pre className="mt-4 text-xs text-slate-400 whitespace-pre-wrap break-words">
-                    {errorStack}
-                  </pre>
-                )}
-              </div>
+              <p className="text-sm text-red-400 break-words">
+                {this.state.errorMessage}
+              </p>
             </div>
 
             <p className="text-xs text-slate-500 mt-5">
-              Kirim tulisan error di atas ke admin/developer BarrStore.
+              Jika masalah terus terjadi, hubungi admin BarrStore.
             </p>
+
           </div>
         </div>
       );
@@ -96,3 +90,4 @@ createRoot(document.getElementById("root")).render(
     </ErrorBoundary>
   </StrictMode>
 );
+```
