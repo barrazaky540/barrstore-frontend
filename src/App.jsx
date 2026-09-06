@@ -42,6 +42,21 @@ function App() {
   const [ordersLoading, setOrdersLoading] = useState(false);
 
   // =========================
+  // RATING & REVIEW
+  // =========================
+
+  const [showRating, setShowRating] = useState(false);
+  const [ratingOrder, setRatingOrder] = useState(null);
+  const [ratingValue, setRatingValue] = useState(5);
+  const [ratingText, setRatingText] = useState("");
+  const [ratingLoading, setRatingLoading] = useState(false);
+
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [averageRating, setAverageRating] = useState(0);
+  const [totalReviews, setTotalReviews] = useState(0);
+
+  // =========================
   // SERVICE
   // =========================
 
@@ -184,9 +199,11 @@ function App() {
       Number(voucherResult.originalPrice) ===
         numericPrice
     ) {
-      return voucherResult.voucher?.code ||
+      return (
+        voucherResult.voucher?.code ||
         voucherCode ||
-        null;
+        null
+      );
     }
 
     return null;
@@ -357,6 +374,168 @@ function App() {
       );
     } finally {
       setOrdersLoading(false);
+    }
+  }
+
+  // =========================
+  // LOAD REVIEW
+  // =========================
+
+  async function loadReviews() {
+    try {
+      setReviewsLoading(true);
+
+      const response = await fetch(
+        API_URL +
+          "/api/reviews?t=" +
+          Date.now(),
+        {
+          method: "GET",
+          cache: "no-store",
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ||
+            "Gagal mengambil review."
+        );
+      }
+
+      setReviews(data.reviews || []);
+      setAverageRating(
+        Number(data.averageRating || 0)
+      );
+      setTotalReviews(
+        Number(data.totalReviews || 0)
+      );
+    } catch (error) {
+      console.error(
+        "LOAD REVIEW ERROR:",
+        error
+      );
+    } finally {
+      setReviewsLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadReviews();
+  }, []);
+
+  // =========================
+  // RATING
+  // =========================
+
+  function openRating(order) {
+    if (!order) return;
+
+    setRatingOrder(order);
+    setRatingValue(
+      Number(order.rating || 5)
+    );
+    setRatingText(
+      order.review || ""
+    );
+    setShowRating(true);
+  }
+
+  function closeRating() {
+    if (ratingLoading) return;
+
+    setShowRating(false);
+    setRatingOrder(null);
+    setRatingValue(5);
+    setRatingText("");
+  }
+
+  async function submitRating() {
+    if (!user?.username) {
+      openLogin();
+      return;
+    }
+
+    if (!ratingOrder?.id) {
+      setMessage(
+        "Pesanan tidak ditemukan."
+      );
+      return;
+    }
+
+    const rating = Number(ratingValue);
+    const review = ratingText.trim();
+
+    if (
+      !Number.isInteger(rating) ||
+      rating < 1 ||
+      rating > 5
+    ) {
+      setMessage(
+        "Rating harus antara 1 sampai 5."
+      );
+      return;
+    }
+
+    if (review.length > 500) {
+      setMessage(
+        "Ulasan maksimal 500 karakter."
+      );
+      return;
+    }
+
+    try {
+      setRatingLoading(true);
+      setMessage("");
+
+      const response = await fetch(
+        API_URL +
+          "/api/orders/" +
+          ratingOrder.id +
+          "/review",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            username: user.username,
+            rating,
+            review,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(
+          data.message ||
+            "Gagal mengirim rating."
+        );
+      }
+
+      setShowRating(false);
+      setRatingOrder(null);
+      setRatingValue(5);
+      setRatingText("");
+
+      await loadMyOrders();
+      await loadReviews();
+
+      setMessage(
+        "⭐ Terima kasih! Rating dan ulasan kamu berhasil dikirim."
+      );
+    } catch (error) {
+      console.error(error);
+
+      setMessage(
+        error.message ||
+          "Gagal mengirim rating."
+      );
+    } finally {
+      setRatingLoading(false);
     }
   }
 
@@ -1109,8 +1288,6 @@ function App() {
               setNote={setNote}
             />
 
-            {/* VOUCHER */}
-
             {selectedNominal && (
               <VoucherBox
                 code={voucherCode}
@@ -1330,8 +1507,6 @@ function App() {
               setJokiPassword={setJokiPassword}
             />
 
-            {/* VOUCHER */}
-
             {jokiPrice > 0 && (
               <VoucherBox
                 code={voucherCode}
@@ -1436,8 +1611,6 @@ function App() {
               accountMode
             />
 
-            {/* VOUCHER */}
-
             {selectedAccount && (
               <VoucherBox
                 code={voucherCode}
@@ -1461,6 +1634,140 @@ function App() {
 
           </section>
         )}
+
+        {/* ========================= */}
+        {/* REVIEW PUBLIK */}
+        {/* ========================= */}
+
+        <section className="mt-8 rounded-3xl border border-slate-800 bg-slate-900 p-5 md:p-7">
+
+          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+
+            <div>
+              <p className="text-sm font-bold text-cyan-400">
+                CUSTOMER REVIEW
+              </p>
+
+              <h3 className="mt-1 text-2xl font-black">
+                ⭐ Review Customer
+              </h3>
+
+              <p className="mt-1 text-sm text-slate-500">
+                Lihat pengalaman customer BarrStore.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-yellow-400/20 bg-yellow-400/5 px-5 py-4 text-center">
+
+              <div className="text-2xl font-black text-yellow-400">
+                ⭐{" "}
+                {averageRating > 0
+                  ? averageRating.toFixed(1)
+                  : "0.0"}
+              </div>
+
+              <p className="mt-1 text-xs font-bold text-slate-500">
+                {totalReviews} review
+                {totalReviews !== 1
+                  ? "s"
+                  : ""}
+              </p>
+
+            </div>
+
+          </div>
+
+          {reviewsLoading ? (
+            <div className="mt-6 rounded-2xl border border-slate-800 bg-slate-950 p-8 text-center">
+
+              <div className="text-3xl">
+                ⏳
+              </div>
+
+              <p className="mt-2 text-sm font-bold text-slate-500">
+                Memuat review...
+              </p>
+
+            </div>
+          ) : reviews.length === 0 ? (
+            <div className="mt-6 rounded-2xl border border-slate-800 bg-slate-950 p-8 text-center">
+
+              <div className="text-4xl">
+                💬
+              </div>
+
+              <p className="mt-3 font-bold text-slate-400">
+                Belum ada review.
+              </p>
+
+              <p className="mt-1 text-sm text-slate-600">
+                Jadilah customer pertama yang memberikan rating!
+              </p>
+
+            </div>
+          ) : (
+            <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+
+              {reviews.slice(0, 6).map((review) => (
+                <div
+                  key={review.id}
+                  className="rounded-2xl border border-slate-800 bg-slate-950 p-5"
+                >
+
+                  <div className="flex items-start justify-between gap-3">
+
+                    <div>
+
+                      <p className="font-black text-white">
+                        👤 {review.username}
+                      </p>
+
+                      <p className="mt-1 text-xs text-slate-600">
+                        {review.game} •{" "}
+                        {review.service}
+                      </p>
+
+                    </div>
+
+                    <div className="text-sm">
+                      {Array.from({
+                        length: 5,
+                      }).map((_, index) => (
+                        <span
+                          key={index}
+                          className={
+                            index <
+                            Number(
+                              review.rating
+                            )
+                              ? "text-yellow-400"
+                              : "text-slate-700"
+                          }
+                        >
+                          ★
+                        </span>
+                      ))}
+                    </div>
+
+                  </div>
+
+                  {review.review ? (
+                    <p className="mt-4 rounded-xl bg-slate-900 p-3 text-sm leading-relaxed text-slate-400">
+                      "{review.review}"
+                    </p>
+                  ) : (
+                    <p className="mt-4 text-sm italic text-slate-600">
+                      Customer memberikan rating tanpa ulasan.
+                    </p>
+                  )}
+
+                </div>
+              ))}
+
+            </div>
+          )}
+
+        </section>
 
         {/* MESSAGE */}
 
@@ -1791,6 +2098,79 @@ function App() {
                       </div>
                     )}
 
+                    {/* RATING PESANAN SELESAI */}
+
+                    {order.status === "selesai" && (
+                      <div className="mt-5">
+
+                        {order.rating == null ? (
+                          <div className="rounded-2xl border border-yellow-400/20 bg-yellow-400/5 p-4">
+
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+
+                              <div>
+
+                                <p className="font-black text-yellow-400">
+                                  ⭐ Pesanan selesai!
+                                </p>
+
+                                <p className="mt-1 text-xs text-slate-500">
+                                  Bagaimana pengalaman kamu menggunakan BarrStore?
+                                </p>
+
+                              </div>
+
+                              <button
+                                onClick={() =>
+                                  openRating(order)
+                                }
+                                className="rounded-xl bg-yellow-400 px-4 py-2 text-sm font-black text-slate-950 transition hover:bg-yellow-300"
+                              >
+                                ⭐ Beri Rating
+                              </button>
+
+                            </div>
+
+                          </div>
+                        ) : (
+                          <div className="rounded-2xl border border-yellow-400/20 bg-yellow-400/5 p-4">
+
+                            <p className="text-xs font-bold text-slate-500">
+                              Rating kamu
+                            </p>
+
+                            <div className="mt-1 text-lg">
+                              {Array.from({
+                                length: 5,
+                              }).map((_, index) => (
+                                <span
+                                  key={index}
+                                  className={
+                                    index <
+                                    Number(
+                                      order.rating
+                                    )
+                                      ? "text-yellow-400"
+                                      : "text-slate-700"
+                                  }
+                                >
+                                  ★
+                                </span>
+                              ))}
+                            </div>
+
+                            {order.review && (
+                              <p className="mt-3 rounded-xl bg-slate-900 p-3 text-sm text-slate-400">
+                                "{order.review}"
+                              </p>
+                            )}
+
+                          </div>
+                        )}
+
+                      </div>
+                    )}
+
                     <p className="mt-4 text-xs text-slate-600">
                       Pesanan dibuat:{" "}
                       {order.created_at || "-"}
@@ -2028,6 +2408,141 @@ function App() {
               className="mt-2 w-full rounded-xl border border-slate-700 px-5 py-3 font-bold text-slate-300 transition hover:border-slate-500 disabled:opacity-50"
             >
               ← Kembali
+            </button>
+
+          </div>
+
+        </div>
+      )}
+
+      {/* ========================= */}
+      {/* RATING MODAL */}
+      {/* ========================= */}
+
+      {showRating && ratingOrder && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 px-4 backdrop-blur-sm">
+
+          <div className="w-full max-w-md rounded-3xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
+
+            <div className="text-center">
+
+              <div className="text-5xl">
+                ⭐
+              </div>
+
+              <h2 className="mt-3 text-2xl font-black">
+                Beri Rating
+              </h2>
+
+              <p className="mt-1 text-sm text-slate-500">
+                Bagaimana pengalaman kamu dengan pesanan #{ratingOrder.id}?
+              </p>
+
+            </div>
+
+            {/* STAR SELECTOR */}
+
+            <div className="mt-6 text-center">
+
+              <div className="flex justify-center gap-2">
+
+                {Array.from({
+                  length: 5,
+                }).map((_, index) => {
+                  const star =
+                    index + 1;
+
+                  return (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() =>
+                        setRatingValue(star)
+                      }
+                      disabled={ratingLoading}
+                      className={
+                        "text-4xl transition hover:scale-110 " +
+                        (
+                          star <=
+                          Number(
+                            ratingValue
+                          )
+                            ? "text-yellow-400"
+                            : "text-slate-700"
+                        )
+                      }
+                    >
+                      ★
+                    </button>
+                  );
+                })}
+
+              </div>
+
+              <p className="mt-3 font-black text-yellow-400">
+                {ratingValue === 5
+                  ? "Sangat puas! 🔥"
+                  : ratingValue === 4
+                    ? "Puas 👍"
+                    : ratingValue === 3
+                      ? "Cukup 🙂"
+                      : ratingValue === 2
+                        ? "Kurang 😕"
+                        : "Tidak puas 😭"}
+              </p>
+
+            </div>
+
+            {/* REVIEW */}
+
+            <div className="mt-6">
+
+              <label className="mb-2 block text-sm font-bold">
+                Ulasan
+                <span className="ml-2 text-xs font-normal text-slate-600">
+                  Opsional
+                </span>
+              </label>
+
+              <textarea
+                value={ratingText}
+                onChange={(e) =>
+                  setRatingText(
+                    e.target.value.slice(
+                      0,
+                      500
+                    )
+                  )
+                }
+                disabled={ratingLoading}
+                placeholder="Ceritakan pengalaman kamu..."
+                rows="4"
+                maxLength={500}
+                className="w-full resize-none rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm outline-none placeholder:text-slate-600 focus:border-yellow-400 disabled:opacity-50"
+              />
+
+              <p className="mt-1 text-right text-xs text-slate-600">
+                {ratingText.length}/500
+              </p>
+
+            </div>
+
+            <button
+              onClick={submitRating}
+              disabled={ratingLoading}
+              className="mt-4 w-full rounded-xl bg-yellow-400 px-5 py-4 font-black text-slate-950 transition hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {ratingLoading
+                ? "⏳ Mengirim..."
+                : "⭐ Kirim Rating"}
+            </button>
+
+            <button
+              onClick={closeRating}
+              disabled={ratingLoading}
+              className="mt-2 w-full rounded-xl border border-slate-700 px-5 py-3 font-bold text-slate-300 transition hover:border-slate-500 disabled:opacity-50"
+            >
+              ← Batal
             </button>
 
           </div>
