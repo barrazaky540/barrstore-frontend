@@ -1,8 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 function Admin({ API_URL, onBack }) {
   const BASE_URL =
     API_URL || "https://barrstore-backend-bhjj.vercel.app";
+
+  // =========================
+  // AUTH
+  // =========================
 
   const [adminKey, setAdminKey] = useState(
     sessionStorage.getItem("barrstore_admin_key") || ""
@@ -10,9 +14,20 @@ function Admin({ API_URL, onBack }) {
 
   const [loggedIn, setLoggedIn] = useState(false);
   const [password, setPassword] = useState("");
-  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // =========================
+  // ORDERS
+  // =========================
+
+  const [orders, setOrders] = useState([]);
+  const [search, setSearch] = useState("");
+  const [filterStatus, setFilterStatus] = useState("semua");
+
+  // =========================
+  // STATS
+  // =========================
 
   const [stats, setStats] = useState({
     totalOrders: 0,
@@ -23,9 +38,6 @@ function Admin({ API_URL, onBack }) {
     selesai: 0,
     dibatalkan: 0,
   });
-
-  const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState("semua");
 
   // =========================
   // VOUCHER
@@ -57,6 +69,24 @@ function Admin({ API_URL, onBack }) {
     }
   }, []);
 
+  // =========================
+  // AUTO REFRESH
+  // =========================
+
+  useEffect(() => {
+    if (!loggedIn || !adminKey) return;
+
+    const interval = setInterval(() => {
+      refreshData(true);
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [loggedIn, adminKey]);
+
+  // =========================
+  // LOGIN CHECK
+  // =========================
+
   async function checkLogin(key) {
     try {
       setLoading(true);
@@ -86,7 +116,7 @@ function Admin({ API_URL, onBack }) {
 
       const data = await response.json();
 
-      setOrders(data);
+      setOrders(Array.isArray(data) ? data : []);
       setAdminKey(key);
       setLoggedIn(true);
 
@@ -106,7 +136,7 @@ function Admin({ API_URL, onBack }) {
   }
 
   // =========================
-  // STATISTIK
+  // LOAD STATS
   // =========================
 
   async function loadStats(key = adminKey) {
@@ -124,9 +154,7 @@ function Admin({ API_URL, onBack }) {
         }
       );
 
-      if (!response.ok) {
-        return;
-      }
+      if (!response.ok) return;
 
       const data = await response.json();
 
@@ -179,13 +207,7 @@ function Admin({ API_URL, onBack }) {
         }
       );
 
-      if (!response.ok) {
-        console.error(
-          "Gagal mengambil voucher:",
-          response.status
-        );
-        return;
-      }
+      if (!response.ok) return;
 
       const data = await response.json();
 
@@ -193,20 +215,17 @@ function Admin({ API_URL, onBack }) {
         setVouchers(data.vouchers || []);
       }
     } catch (err) {
-      console.error(
-        "VOUCHER ERROR:",
-        err
-      );
+      console.error("VOUCHER ERROR:", err);
     }
   }
 
   // =========================
-  // REFRESH
+  // REFRESH DATA
   // =========================
 
-  async function refreshData() {
+  async function refreshData(silent = false) {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
 
       const response = await fetch(
         BASE_URL +
@@ -229,15 +248,18 @@ function Admin({ API_URL, onBack }) {
 
       const data = await response.json();
 
-      setOrders(data);
+      setOrders(Array.isArray(data) ? data : []);
 
       await loadStats(adminKey);
       await loadVouchers(adminKey);
     } catch (err) {
       console.error(err);
-      alert("Gagal memperbarui data.");
+
+      if (!silent) {
+        alert("Gagal memperbarui data.");
+      }
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }
 
@@ -284,7 +306,7 @@ function Admin({ API_URL, onBack }) {
   }
 
   // =========================
-  // UPDATE STATUS ORDER
+  // UPDATE STATUS
   // =========================
 
   async function updateStatus(id, status) {
@@ -354,7 +376,9 @@ function Admin({ API_URL, onBack }) {
     }
 
     if (!value || value <= 0) {
-      alert("Nilai diskon harus lebih dari 0.");
+      alert(
+        "Nilai diskon harus lebih dari 0."
+      );
       return;
     }
 
@@ -425,6 +449,7 @@ function Admin({ API_URL, onBack }) {
       await loadVouchers(adminKey);
     } catch (err) {
       console.error(err);
+
       alert(
         err.message ||
           "Gagal membuat voucher."
@@ -473,6 +498,7 @@ function Admin({ API_URL, onBack }) {
       await loadVouchers(adminKey);
     } catch (err) {
       console.error(err);
+
       alert(
         err.message ||
           "Gagal mengubah status voucher."
@@ -521,9 +547,7 @@ function Admin({ API_URL, onBack }) {
     return formatRp(voucher.value);
   }
 
-  function formatVoucherExpiry(
-    expiresAt
-  ) {
+  function formatVoucherExpiry(expiresAt) {
     if (!expiresAt) {
       return "Tidak ada batas waktu";
     }
@@ -537,8 +561,37 @@ function Admin({ API_URL, onBack }) {
     return date.toLocaleString("id-ID");
   }
 
-  const filteredOrders = orders.filter(
-    (order) => {
+  // =========================
+  // DATE HELPER
+  // =========================
+
+  function getOrderDate(order) {
+    const raw =
+      order.created_at ||
+      order.createdAt ||
+      order.date ||
+      order.created ||
+      order.timestamp ||
+      order.updated_at ||
+      order.updatedAt;
+
+    if (!raw) return null;
+
+    const date = new Date(raw);
+
+    if (Number.isNaN(date.getTime())) {
+      return null;
+    }
+
+    return date;
+  }
+
+  // =========================
+  // FILTER ORDER
+  // =========================
+
+  const filteredOrders = useMemo(() => {
+    return orders.filter((order) => {
       const keyword =
         search.toLowerCase().trim();
 
@@ -568,8 +621,239 @@ function Admin({ API_URL, onBack }) {
         order.status === filterStatus;
 
       return searchMatch && statusMatch;
+    });
+  }, [orders, search, filterStatus]);
+
+  // =========================
+  // DASHBOARD DATA
+  // =========================
+
+  const dashboardData = useMemo(() => {
+    const today = new Date();
+
+    const isSameDay = (a, b) => {
+      return (
+        a.getFullYear() ===
+          b.getFullYear() &&
+        a.getMonth() === b.getMonth() &&
+        a.getDate() === b.getDate()
+      );
+    };
+
+    // =========================
+    // OMZET HARI INI
+    // =========================
+
+    const omzetHariIni = orders
+      .filter((order) => {
+        const date = getOrderDate(order);
+
+        return (
+          date &&
+          isSameDay(date, today) &&
+          order.status === "selesai"
+        );
+      })
+      .reduce(
+        (total, order) =>
+          total +
+          Number(order.price || 0),
+        0
+      );
+
+    // =========================
+    // GAME TERLARIS
+    // =========================
+
+    const gameMap = {};
+
+    orders.forEach((order) => {
+      const game =
+        order.game ||
+        order.service ||
+        "Lainnya";
+
+      gameMap[game] =
+        (gameMap[game] || 0) + 1;
+    });
+
+    const topGames = Object.entries(
+      gameMap
+    )
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+
+    // =========================
+    // SERVICE TERLARIS
+    // =========================
+
+    const serviceMap = {};
+
+    orders.forEach((order) => {
+      const service =
+        order.service || "Lainnya";
+
+      serviceMap[service] =
+        (serviceMap[service] || 0) + 1;
+    });
+
+    const topServices = Object.entries(
+      serviceMap
+    )
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+
+    // =========================
+    // RATING
+    // =========================
+
+    const ratings = orders
+      .map((order) => {
+        const value =
+          order.rating ??
+          order.review_rating ??
+          order.reviewRating ??
+          order.stars;
+
+        const number = Number(value);
+
+        if (
+          Number.isFinite(number) &&
+          number >= 1 &&
+          number <= 5
+        ) {
+          return number;
+        }
+
+        return null;
+      })
+      .filter(
+        (value) => value !== null
+      );
+
+    const averageRating =
+      ratings.length > 0
+        ? ratings.reduce(
+            (a, b) => a + b,
+            0
+          ) / ratings.length
+        : 0;
+
+    // =========================
+    // REVIEWS
+    // =========================
+
+    const reviews = orders
+      .filter((order) => {
+        return Boolean(
+          order.review ||
+            order.ulasan ||
+            order.comment
+        );
+      })
+      .sort((a, b) => {
+        const dateA =
+          getOrderDate(a)?.getTime() || 0;
+
+        const dateB =
+          getOrderDate(b)?.getTime() || 0;
+
+        return dateB - dateA;
+      })
+      .slice(0, 5);
+
+    // =========================
+    // RECENT ORDERS
+    // =========================
+
+    const recentOrders = [...orders]
+      .sort((a, b) => {
+        const dateA =
+          getOrderDate(a)?.getTime() || 0;
+
+        const dateB =
+          getOrderDate(b)?.getTime() || 0;
+
+        if (dateA === dateB) {
+          return (
+            Number(b.id || 0) -
+            Number(a.id || 0)
+          );
+        }
+
+        return dateB - dateA;
+      })
+      .slice(0, 5);
+
+    // =========================
+    // 7 DAYS CHART
+    // =========================
+
+    const chartDays = [];
+
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+
+      date.setHours(0, 0, 0, 0);
+      date.setDate(
+        date.getDate() - i
+      );
+
+      const dayOrders = orders.filter(
+        (order) => {
+          const orderDate =
+            getOrderDate(order);
+
+          return (
+            orderDate &&
+            order.status === "selesai" &&
+            isSameDay(
+              orderDate,
+              date
+            )
+          );
+        }
+      );
+
+      const omzet = dayOrders.reduce(
+        (total, order) =>
+          total +
+          Number(order.price || 0),
+        0
+      );
+
+      chartDays.push({
+        date,
+        label: date.toLocaleDateString(
+          "id-ID",
+          {
+            weekday: "short",
+          }
+        ),
+        shortDate:
+          date.toLocaleDateString(
+            "id-ID",
+            {
+              day: "2-digit",
+              month: "2-digit",
+            }
+          ),
+        omzet,
+        orders: dayOrders.length,
+      });
     }
-  );
+
+    return {
+      omzetHariIni,
+      topGames,
+      topServices,
+      averageRating,
+      ratingCount: ratings.length,
+      reviews,
+      recentOrders,
+      chartDays,
+    };
+  }, [orders]);
 
   // =========================
   // LOGIN SCREEN
@@ -654,8 +938,10 @@ function Admin({ API_URL, onBack }) {
   return (
     <div className="min-h-screen bg-slate-950 text-white">
 
-      <header className="border-b border-slate-800 bg-slate-950">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-5">
+      {/* HEADER */}
+
+      <header className="sticky top-0 z-30 border-b border-slate-800 bg-slate-950/95 backdrop-blur">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4">
 
           <div>
             <h1 className="text-2xl font-black">
@@ -666,15 +952,17 @@ function Admin({ API_URL, onBack }) {
               Admin
             </h1>
 
-            <p className="text-sm text-slate-500">
-              Dashboard & pengelolaan pesanan
+            <p className="text-xs text-slate-500">
+              Dashboard & pengelolaan toko
             </p>
           </div>
 
           <div className="flex gap-2">
 
             <button
-              onClick={refreshData}
+              onClick={() =>
+                refreshData(false)
+              }
               disabled={loading}
               className="rounded-xl border border-slate-700 px-4 py-2 text-sm font-bold transition hover:border-cyan-400 hover:text-cyan-400 disabled:opacity-50"
             >
@@ -686,7 +974,7 @@ function Admin({ API_URL, onBack }) {
 
             <button
               onClick={onBack}
-              className="rounded-xl border border-slate-700 px-4 py-2 text-sm font-bold transition hover:border-cyan-400 hover:text-cyan-400"
+              className="hidden rounded-xl border border-slate-700 px-4 py-2 text-sm font-bold transition hover:border-cyan-400 hover:text-cyan-400 sm:block"
             >
               ← Toko
             </button>
@@ -704,14 +992,12 @@ function Admin({ API_URL, onBack }) {
 
       <main className="mx-auto max-w-7xl px-4 py-8">
 
-        {/* =========================
-            DASHBOARD
-        ========================= */}
+        {/* DASHBOARD TITLE */}
 
         <section className="mb-8">
 
-          <div className="mb-5">
-            <h2 className="text-2xl font-black">
+          <div className="mb-6">
+            <h2 className="text-3xl font-black">
               📊 Dashboard
             </h2>
 
@@ -720,144 +1006,510 @@ function Admin({ API_URL, onBack }) {
             </p>
           </div>
 
+          {/* MAIN STATS */}
+
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
-            <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-bold text-slate-500">
-                  Total Pesanan
-                </p>
+            <StatCard
+              title="Total Pesanan"
+              value={stats.totalOrders}
+              icon="📦"
+              textClass="text-cyan-400"
+            />
 
-                <span className="text-2xl">
-                  📦
-                </span>
-              </div>
+            <StatCard
+              title="Total Pelanggan"
+              value={stats.totalUsers}
+              icon="👥"
+              textClass="text-purple-400"
+            />
 
-              <p className="mt-3 text-3xl font-black text-cyan-400">
-                {stats.totalOrders}
-              </p>
-            </div>
+            <StatCard
+              title="Total Omzet"
+              value={formatRp(
+                stats.totalOmzet
+              )}
+              icon="💰"
+              textClass="text-green-400"
+              small
+            />
 
-            <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-bold text-slate-500">
-                  Total Pelanggan
-                </p>
-
-                <span className="text-2xl">
-                  👥
-                </span>
-              </div>
-
-              <p className="mt-3 text-3xl font-black text-purple-400">
-                {stats.totalUsers}
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-bold text-slate-500">
-                  Total Omzet
-                </p>
-
-                <span className="text-2xl">
-                  💰
-                </span>
-              </div>
-
-              <p className="mt-3 text-2xl font-black text-green-400">
-                {formatRp(
-                  stats.totalOmzet
-                )}
-              </p>
-
-              <p className="mt-1 text-xs text-slate-600">
-                Dari pesanan selesai
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-bold text-slate-500">
-                  Pesanan Selesai
-                </p>
-
-                <span className="text-2xl">
-                  ✅
-                </span>
-              </div>
-
-              <p className="mt-3 text-3xl font-black text-green-400">
-                {stats.selesai}
-              </p>
-            </div>
+            <StatCard
+              title="Omzet Hari Ini"
+              value={formatRp(
+                dashboardData.omzetHariIni
+              )}
+              icon="📈"
+              textClass="text-amber-400"
+              small
+            />
 
           </div>
 
+          {/* STATUS */}
+
           <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
-            <div className="rounded-2xl border border-yellow-500/20 bg-yellow-500/5 p-5">
-              <p className="text-sm font-bold text-yellow-400">
-                ⏳ Pending
-              </p>
+            <MiniStat
+              title="Pending"
+              value={stats.pending}
+              icon="⏳"
+              className="border-yellow-500/20 bg-yellow-500/5 text-yellow-400"
+            />
 
-              <p className="mt-2 text-3xl font-black text-yellow-400">
-                {stats.pending}
-              </p>
-            </div>
+            <MiniStat
+              title="Diproses"
+              value={stats.diproses}
+              icon="🔄"
+              className="border-blue-500/20 bg-blue-500/5 text-blue-400"
+            />
 
-            <div className="rounded-2xl border border-blue-500/20 bg-blue-500/5 p-5">
-              <p className="text-sm font-bold text-blue-400">
-                🔄 Diproses
-              </p>
+            <MiniStat
+              title="Selesai"
+              value={stats.selesai}
+              icon="✅"
+              className="border-green-500/20 bg-green-500/5 text-green-400"
+            />
 
-              <p className="mt-2 text-3xl font-black text-blue-400">
-                {stats.diproses}
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-green-500/20 bg-green-500/5 p-5">
-              <p className="text-sm font-bold text-green-400">
-                ✅ Selesai
-              </p>
-
-              <p className="mt-2 text-3xl font-black text-green-400">
-                {stats.selesai}
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-5">
-              <p className="text-sm font-bold text-red-400">
-                ❌ Dibatalkan
-              </p>
-
-              <p className="mt-2 text-3xl font-black text-red-400">
-                {stats.dibatalkan}
-              </p>
-            </div>
+            <MiniStat
+              title="Dibatalkan"
+              value={stats.dibatalkan}
+              icon="❌"
+              className="border-red-500/20 bg-red-500/5 text-red-400"
+            />
 
           </div>
 
         </section>
 
-        {/* =========================
-            VOUCHER MANAGEMENT
-        ========================= */}
+        {/* SVG SALES CHART */}
+
+        <section className="mb-8 rounded-3xl border border-slate-800 bg-slate-900 p-5">
+
+          <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+
+            <div>
+              <h2 className="text-xl font-black">
+                📈 Grafik Omzet
+              </h2>
+
+              <p className="text-sm text-slate-500">
+                Omzet pesanan selesai selama 7 hari terakhir
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/5 px-3 py-2 text-xs font-bold text-cyan-400">
+              SVG LIVE DATA
+            </div>
+
+          </div>
+
+          <SalesChart
+            data={dashboardData.chartDays}
+            formatRp={formatRp}
+          />
+
+        </section>
+
+        {/* BEST SELLERS */}
+
+        <section className="mb-8 grid gap-6 lg:grid-cols-2">
+
+          {/* GAME TERLARIS */}
+
+          <div className="rounded-3xl border border-slate-800 bg-slate-900 p-5">
+
+            <div className="mb-5">
+              <h2 className="text-xl font-black">
+                🏆 Game Paling Laku
+              </h2>
+
+              <p className="mt-1 text-sm text-slate-500">
+                Berdasarkan jumlah pesanan
+              </p>
+            </div>
+
+            {dashboardData.topGames.length ===
+            0 ? (
+              <EmptySmall text="Belum ada data game." />
+            ) : (
+              <div className="space-y-4">
+                {dashboardData.topGames.map(
+                  ([game, count], index) => {
+                    const max =
+                      dashboardData.topGames[0][1];
+
+                    const percentage =
+                      max > 0
+                        ? (count / max) * 100
+                        : 0;
+
+                    return (
+                      <div key={game}>
+
+                        <div className="mb-2 flex items-center justify-between gap-3">
+
+                          <div className="flex min-w-0 items-center gap-3">
+                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-sm font-black">
+                              {index + 1}
+                            </span>
+
+                            <span className="truncate font-bold">
+                              {game}
+                            </span>
+                          </div>
+
+                          <span className="shrink-0 text-sm font-black text-cyan-400">
+                            {count} order
+                          </span>
+
+                        </div>
+
+                        <div className="h-2 overflow-hidden rounded-full bg-slate-800">
+                          <div
+                            className="h-full rounded-full bg-cyan-400 transition-all"
+                            style={{
+                              width:
+                                percentage +
+                                "%",
+                            }}
+                          />
+                        </div>
+
+                      </div>
+                    );
+                  }
+                )}
+              </div>
+            )}
+
+          </div>
+
+          {/* SERVICE TERLARIS */}
+
+          <div className="rounded-3xl border border-slate-800 bg-slate-900 p-5">
+
+            <div className="mb-5">
+              <h2 className="text-xl font-black">
+                🛒 Layanan Paling Laku
+              </h2>
+
+              <p className="mt-1 text-sm text-slate-500">
+                Top Up, Joki, Akun, dan layanan lainnya
+              </p>
+            </div>
+
+            {dashboardData.topServices.length ===
+            0 ? (
+              <EmptySmall text="Belum ada data layanan." />
+            ) : (
+              <div className="space-y-4">
+                {dashboardData.topServices.map(
+                  ([service, count], index) => {
+                    const max =
+                      dashboardData.topServices[0][1];
+
+                    const percentage =
+                      max > 0
+                        ? (count / max) * 100
+                        : 0;
+
+                    return (
+                      <div key={service}>
+
+                        <div className="mb-2 flex items-center justify-between gap-3">
+
+                          <div className="flex min-w-0 items-center gap-3">
+                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-sm font-black">
+                              {index + 1}
+                            </span>
+
+                            <span className="truncate font-bold capitalize">
+                              {service}
+                            </span>
+                          </div>
+
+                          <span className="shrink-0 text-sm font-black text-purple-400">
+                            {count} order
+                          </span>
+
+                        </div>
+
+                        <div className="h-2 overflow-hidden rounded-full bg-slate-800">
+                          <div
+                            className="h-full rounded-full bg-purple-400 transition-all"
+                            style={{
+                              width:
+                                percentage +
+                                "%",
+                            }}
+                          />
+                        </div>
+
+                      </div>
+                    );
+                  }
+                )}
+              </div>
+            )}
+
+          </div>
+
+        </section>
+
+        {/* RATING + REVIEW */}
+
+        <section className="mb-8 grid gap-6 lg:grid-cols-3">
+
+          {/* RATING */}
+
+          <div className="rounded-3xl border border-slate-800 bg-slate-900 p-5">
+
+            <h2 className="text-xl font-black">
+              ⭐ Rating Customer
+            </h2>
+
+            <p className="mt-1 text-sm text-slate-500">
+              Berdasarkan rating yang tersimpan di pesanan
+            </p>
+
+            <div className="mt-8 text-center">
+
+              <div className="text-5xl font-black text-amber-400">
+                {dashboardData.averageRating
+                  ? dashboardData.averageRating.toFixed(
+                      1
+                    )
+                  : "—"}
+              </div>
+
+              <div className="mt-2 text-2xl tracking-widest text-amber-400">
+                {renderStars(
+                  dashboardData.averageRating
+                )}
+              </div>
+
+              <p className="mt-3 text-sm text-slate-500">
+                {dashboardData.ratingCount} ulasan
+              </p>
+
+            </div>
+
+          </div>
+
+          {/* REVIEW */}
+
+          <div className="rounded-3xl border border-slate-800 bg-slate-900 p-5 lg:col-span-2">
+
+            <div className="mb-5">
+              <h2 className="text-xl font-black">
+                💬 Review Customer
+              </h2>
+
+              <p className="mt-1 text-sm text-slate-500">
+                Review terbaru dari pelanggan
+              </p>
+            </div>
+
+            {dashboardData.reviews.length ===
+            0 ? (
+              <EmptySmall text="Belum ada review yang tersimpan." />
+            ) : (
+              <div className="grid gap-3 md:grid-cols-2">
+
+                {dashboardData.reviews.map(
+                  (review) => {
+                    const rating =
+                      Number(
+                        review.rating ??
+                          review.review_rating ??
+                          review.reviewRating ??
+                          review.stars ??
+                          0
+                      );
+
+                    const text =
+                      review.review ||
+                      review.ulasan ||
+                      review.comment ||
+                      "";
+
+                    return (
+                      <div
+                        key={review.id}
+                        className="rounded-2xl border border-slate-800 bg-slate-950 p-4"
+                      >
+
+                        <div className="flex items-center justify-between gap-3">
+
+                          <p className="font-black">
+                            👤{" "}
+                            {review.username ||
+                              review.nickname ||
+                              "Customer"}
+                          </p>
+
+                          <span className="text-sm text-amber-400">
+                            {renderStars(
+                              rating
+                            )}
+                          </span>
+
+                        </div>
+
+                        <p className="mt-3 text-sm leading-6 text-slate-400">
+                          "{text}"
+                        </p>
+
+                      </div>
+                    );
+                  }
+                )}
+
+              </div>
+            )}
+
+          </div>
+
+        </section>
+
+        {/* RECENT ORDERS */}
+
+        <section className="mb-8 rounded-3xl border border-slate-800 bg-slate-900">
+
+          <div className="border-b border-slate-800 p-5">
+
+            <div className="flex items-center justify-between gap-3">
+
+              <div>
+                <h2 className="text-xl font-black">
+                  📋 Pesanan Terbaru
+                </h2>
+
+                <p className="mt-1 text-sm text-slate-500">
+                  5 pesanan terakhir
+                </p>
+              </div>
+
+              <button
+                onClick={() => {
+                  document
+                    .getElementById(
+                      "orders-section"
+                    )
+                    ?.scrollIntoView({
+                      behavior: "smooth",
+                    });
+                }}
+                className="rounded-xl border border-slate-700 px-3 py-2 text-xs font-bold transition hover:border-cyan-400 hover:text-cyan-400"
+              >
+                Lihat Semua
+              </button>
+
+            </div>
+
+          </div>
+
+          {dashboardData.recentOrders.length ===
+          0 ? (
+            <EmptySmall text="Belum ada pesanan." />
+          ) : (
+            <div className="divide-y divide-slate-800">
+
+              {dashboardData.recentOrders.map(
+                (order) => (
+                  <div
+                    key={order.id}
+                    className="flex flex-col gap-3 p-4 transition hover:bg-slate-800/30 sm:flex-row sm:items-center sm:justify-between"
+                  >
+
+                    <div className="min-w-0">
+
+                      <div className="flex flex-wrap items-center gap-2">
+
+                        <span className="font-black">
+                          #{order.id}
+                        </span>
+
+                        <span className="rounded-lg bg-cyan-400/10 px-2 py-1 text-xs font-bold text-cyan-400">
+                          {order.service ||
+                            "Order"}
+                        </span>
+
+                        <span
+                          className={
+                            "rounded-lg border px-2 py-1 text-xs font-bold " +
+                            getStatusClass(
+                              order.status
+                            )
+                          }
+                        >
+                          {order.status}
+                        </span>
+
+                      </div>
+
+                      <p className="mt-2 truncate font-bold">
+                        {order.game ||
+                          "Layanan BarrStore"}
+                      </p>
+
+                      <p className="text-xs text-slate-500">
+                        {order.username ||
+                          order.nickname ||
+                          "Customer"}
+                      </p>
+
+                    </div>
+
+                    <div className="text-left sm:text-right">
+
+                      <p className="font-black text-cyan-400">
+                        {formatRp(
+                          order.price
+                        )}
+                      </p>
+
+                      <p className="mt-1 text-xs text-slate-600">
+                        {getOrderDate(
+                          order
+                        )
+                          ? getOrderDate(
+                              order
+                            ).toLocaleString(
+                              "id-ID"
+                            )
+                          : "Tanggal tidak tersedia"}
+                      </p>
+
+                    </div>
+
+                  </div>
+                )
+              )}
+
+            </div>
+          )}
+
+        </section>
+
+        {/* VOUCHER MANAGEMENT */}
 
         <section className="mb-8 overflow-hidden rounded-3xl border border-slate-800 bg-slate-900">
 
           <div className="border-b border-slate-800 p-5">
+
             <h2 className="text-xl font-black">
               🎟️ Kelola Voucher
             </h2>
 
             <p className="mt-1 text-sm text-slate-500">
-              Buat kode voucher yang bisa
-              digunakan pelanggan di toko.
+              Buat dan aktifkan voucher pelanggan.
             </p>
+
           </div>
 
-          {/* FORM BUAT VOUCHER */}
+          {/* FORM */}
 
           <div className="border-b border-slate-800 p-5">
 
@@ -999,6 +1651,7 @@ function Admin({ API_URL, onBack }) {
               </div>
 
               <div className="flex items-end">
+
                 <button
                   type="submit"
                   disabled={voucherLoading}
@@ -1008,6 +1661,7 @@ function Admin({ API_URL, onBack }) {
                     ? "⏳ Membuat..."
                     : "🎟️ Buat Voucher"}
                 </button>
+
               </div>
 
             </form>
@@ -1019,6 +1673,7 @@ function Admin({ API_URL, onBack }) {
           <div className="p-5">
 
             <div className="mb-4 flex items-center justify-between">
+
               <div>
                 <h3 className="font-black">
                   📋 Daftar Voucher
@@ -1026,7 +1681,7 @@ function Admin({ API_URL, onBack }) {
 
                 <p className="mt-1 text-xs text-slate-500">
                   {vouchers.length} voucher
-                  tersedia di database.
+                  tersedia.
                 </p>
               </div>
 
@@ -1038,25 +1693,11 @@ function Admin({ API_URL, onBack }) {
               >
                 🔄 Refresh Voucher
               </button>
+
             </div>
 
             {vouchers.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-slate-700 bg-slate-950 p-8 text-center">
-
-                <div className="text-4xl">
-                  🎟️
-                </div>
-
-                <p className="mt-3 font-bold text-slate-400">
-                  Belum ada voucher.
-                </p>
-
-                <p className="mt-1 text-sm text-slate-600">
-                  Buat voucher pertama lu di
-                  form atas.
-                </p>
-
-              </div>
+              <EmptySmall text="Belum ada voucher." />
             ) : (
               <div className="grid gap-4 md:grid-cols-2">
 
@@ -1070,6 +1711,7 @@ function Admin({ API_URL, onBack }) {
                       <div className="flex items-start justify-between gap-4">
 
                         <div>
+
                           <div className="flex flex-wrap items-center gap-2">
 
                             <span className="rounded-lg bg-cyan-400/10 px-3 py-1 font-black tracking-wider text-cyan-400">
@@ -1094,7 +1736,7 @@ function Admin({ API_URL, onBack }) {
 
                           </div>
 
-                          <p className="mt-4 text-2xl font-black text-white">
+                          <p className="mt-4 text-2xl font-black">
                             {formatVoucherValue(
                               voucher
                             )}
@@ -1109,8 +1751,7 @@ function Admin({ API_URL, onBack }) {
 
                             {voucher.max_uses ? (
                               <>
-                                {" "}
-                                /{" "}
+                                {" / "}
                                 <span className="font-bold text-slate-300">
                                   {
                                     voucher.max_uses
@@ -1165,11 +1806,12 @@ function Admin({ API_URL, onBack }) {
 
         </section>
 
-        {/* =========================
-            ORDERS
-        ========================= */}
+        {/* ALL ORDERS */}
 
-        <section className="overflow-hidden rounded-3xl border border-slate-800 bg-slate-900">
+        <section
+          id="orders-section"
+          className="overflow-hidden rounded-3xl border border-slate-800 bg-slate-900"
+        >
 
           <div className="border-b border-slate-800 p-5">
 
@@ -1237,8 +1879,7 @@ function Admin({ API_URL, onBack }) {
 
           </div>
 
-          {filteredOrders.length ===
-          0 ? (
+          {filteredOrders.length === 0 ? (
             <div className="p-12 text-center">
 
               <div className="text-5xl">
@@ -1287,7 +1928,8 @@ function Admin({ API_URL, onBack }) {
                           </span>
 
                           <span className="rounded-lg bg-cyan-400/10 px-2 py-1 text-xs font-bold text-cyan-400">
-                            {order.service}
+                            {order.service ||
+                              "Order"}
                           </span>
 
                           <span
@@ -1316,6 +1958,7 @@ function Admin({ API_URL, onBack }) {
                           order.discount || 0
                         ) > 0 && (
                           <div className="mt-2 text-sm">
+
                             <span className="text-slate-500 line-through">
                               {formatRp(
                                 Number(
@@ -1335,6 +1978,7 @@ function Admin({ API_URL, onBack }) {
                                 order.discount
                               )}
                             </span>
+
                           </div>
                         )}
 
@@ -1391,6 +2035,19 @@ function Admin({ API_URL, onBack }) {
                           {order.whatsapp ||
                             "-"}
                         </p>
+
+                        {getOrderDate(
+                          order
+                        ) && (
+                          <p className="mt-2 text-xs text-slate-600">
+                            🕒{" "}
+                            {getOrderDate(
+                              order
+                            ).toLocaleString(
+                              "id-ID"
+                            )}
+                          </p>
+                        )}
 
                       </div>
 
@@ -1486,8 +2143,396 @@ function Admin({ API_URL, onBack }) {
         </section>
 
       </main>
+
     </div>
   );
+}
+
+// =====================================================
+// STAT CARD
+// =====================================================
+
+function StatCard({
+  title,
+  value,
+  icon,
+  textClass,
+  small = false,
+}) {
+  return (
+    <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+
+      <div className="flex items-center justify-between">
+
+        <p className="text-sm font-bold text-slate-500">
+          {title}
+        </p>
+
+        <span className="text-2xl">
+          {icon}
+        </span>
+
+      </div>
+
+      <p
+        className={
+          "mt-3 font-black " +
+          (small
+            ? "text-xl"
+            : "text-3xl") +
+          " " +
+          textClass
+        }
+      >
+        {value}
+      </p>
+
+    </div>
+  );
+}
+
+// =====================================================
+// MINI STAT
+// =====================================================
+
+function MiniStat({
+  title,
+  value,
+  icon,
+  className,
+}) {
+  return (
+    <div
+      className={
+        "rounded-2xl border p-5 " +
+        className
+      }
+    >
+      <p className="text-sm font-bold">
+        {icon} {title}
+      </p>
+
+      <p className="mt-2 text-3xl font-black">
+        {value}
+      </p>
+    </div>
+  );
+}
+
+// =====================================================
+// EMPTY
+// =====================================================
+
+function EmptySmall({ text }) {
+  return (
+    <div className="rounded-2xl border border-dashed border-slate-700 bg-slate-950 p-8 text-center">
+
+      <div className="text-4xl">
+        📭
+      </div>
+
+      <p className="mt-3 text-sm font-bold text-slate-500">
+        {text}
+      </p>
+
+    </div>
+  );
+}
+
+// =====================================================
+// SVG SALES CHART
+// =====================================================
+
+function SalesChart({
+  data,
+  formatRp,
+}) {
+  const width = 900;
+  const height = 340;
+
+  const paddingLeft = 65;
+  const paddingRight = 25;
+  const paddingTop = 25;
+  const paddingBottom = 55;
+
+  const chartWidth =
+    width -
+    paddingLeft -
+    paddingRight;
+
+  const chartHeight =
+    height -
+    paddingTop -
+    paddingBottom;
+
+  const maxValue = Math.max(
+    ...data.map(
+      (item) => item.omzet
+    ),
+    1
+  );
+
+  const points = data.map(
+    (item, index) => {
+      const x =
+        paddingLeft +
+        (index /
+          Math.max(
+            data.length - 1,
+            1
+          )) *
+          chartWidth;
+
+      const y =
+        paddingTop +
+        chartHeight -
+        (item.omzet / maxValue) *
+          chartHeight;
+
+      return {
+        ...item,
+        x,
+        y,
+      };
+    }
+  );
+
+  // FIX: dibuat tanpa nested template literal
+  // supaya Vite tidak error saat parsing JSX.
+
+  const linePath = points
+    .map((point, index) => {
+      const command =
+        index === 0 ? "M" : "L";
+
+      return (
+        command +
+        " " +
+        point.x +
+        " " +
+        point.y
+      );
+    })
+    .join(" ");
+
+  const areaPath =
+    points.length > 0
+      ? linePath +
+        " L " +
+        points[points.length - 1].x +
+        " " +
+        (paddingTop +
+          chartHeight) +
+        " L " +
+        points[0].x +
+        " " +
+        (paddingTop +
+          chartHeight) +
+        " Z"
+      : "";
+
+  const gridValues = [
+    maxValue,
+    maxValue * 0.75,
+    maxValue * 0.5,
+    maxValue * 0.25,
+    0,
+  ];
+
+  return (
+    <div className="w-full overflow-x-auto">
+
+      <div className="min-w-[700px]">
+
+        <svg
+          viewBox={`0 0 ${width} ${height}`}
+          className="h-auto w-full"
+          role="img"
+          aria-label="Grafik omzet 7 hari"
+        >
+
+          {/* GRID */}
+
+          {gridValues.map(
+            (value, index) => {
+              const y =
+                paddingTop +
+                (index / 4) *
+                  chartHeight;
+
+              return (
+                <g key={index}>
+
+                  <line
+                    x1={paddingLeft}
+                    x2={
+                      width -
+                      paddingRight
+                    }
+                    y1={y}
+                    y2={y}
+                    stroke="currentColor"
+                    strokeOpacity="0.1"
+                    strokeDasharray="5 5"
+                  />
+
+                  <text
+                    x={paddingLeft - 10}
+                    y={y + 4}
+                    textAnchor="end"
+                    className="fill-slate-500 text-[11px]"
+                  >
+                    {formatCompactRp(
+                      value
+                    )}
+                  </text>
+
+                </g>
+              );
+            }
+          )}
+
+          {/* AREA */}
+
+          {areaPath && (
+            <path
+              d={areaPath}
+              fill="currentColor"
+              fillOpacity="0.06"
+              className="text-cyan-400"
+            />
+          )}
+
+          {/* LINE */}
+
+          {linePath && (
+            <path
+              d={linePath}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-cyan-400"
+            />
+          )}
+
+          {/* POINTS */}
+
+          {points.map(
+            (point, index) => (
+              <g key={index}>
+
+                <circle
+                  cx={point.x}
+                  cy={point.y}
+                  r="7"
+                  className="fill-slate-900 stroke-cyan-400"
+                  strokeWidth="3"
+                />
+
+                <circle
+                  cx={point.x}
+                  cy={point.y}
+                  r="3"
+                  className="fill-cyan-400"
+                />
+
+                <text
+                  x={point.x}
+                  y={
+                    point.y - 15
+                  }
+                  textAnchor="middle"
+                  className="fill-slate-300 text-[10px] font-bold"
+                >
+                  {formatCompactRp(
+                    point.omzet
+                  )}
+                </text>
+
+                <text
+                  x={point.x}
+                  y={
+                    height - 25
+                  }
+                  textAnchor="middle"
+                  className="fill-slate-500 text-[11px] font-bold"
+                >
+                  {point.label}
+                </text>
+
+                <text
+                  x={point.x}
+                  y={
+                    height - 10
+                  }
+                  textAnchor="middle"
+                  className="fill-slate-700 text-[9px]"
+                >
+                  {point.shortDate}
+                </text>
+
+              </g>
+            )
+          )}
+
+        </svg>
+
+      </div>
+
+    </div>
+  );
+}
+
+// =====================================================
+// COMPACT RP
+// =====================================================
+
+function formatCompactRp(value) {
+  const number = Number(value || 0);
+
+  if (number >= 1000000000) {
+    return (
+      "Rp " +
+      (number / 1000000000).toFixed(1) +
+      "M"
+    );
+  }
+
+  if (number >= 1000000) {
+    return (
+      "Rp " +
+      (number / 1000000).toFixed(1) +
+      "jt"
+    );
+  }
+
+  if (number >= 1000) {
+    return (
+      "Rp " +
+      (number / 1000).toFixed(0) +
+      "rb"
+    );
+  }
+
+  return "Rp " + number;
+}
+
+// =====================================================
+// STARS
+// =====================================================
+
+function renderStars(rating) {
+  const rounded = Math.round(
+    Number(rating || 0)
+  );
+
+  return [1, 2, 3, 4, 5]
+    .map((star) =>
+      star <= rounded ? "★" : "☆"
+    )
+    .join("");
 }
 
 export default Admin;
