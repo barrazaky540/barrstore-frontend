@@ -1,12 +1,12 @@
 export const GAMES = [
-  { id: "ml", name: "Mobile Legends", icon: "⚔️" },
-  { id: "ff", name: "Free Fire", icon: "🔥" },
-  { id: "pubg", name: "PUBG Mobile", icon: "🎯" },
-  { id: "valo", name: "Valorant", icon: "🎮" },
-  { id: "genshin", name: "Genshin Impact", icon: "✨" },
-  { id: "codm", name: "Call of Duty Mobile", icon: "🪖" },
-  { id: "hok", name: "Honor of Kings", icon: "👑" },
-  { id: "aov", name: "Arena of Valor", icon: "🏹" },
+  { id: "ml", name: "Mobile Legends" },
+  { id: "ff", name: "Free Fire" },
+  { id: "pubg", name: "PUBG Mobile" },
+  { id: "valo", name: "Valorant" },
+  { id: "genshin", name: "Genshin Impact" },
+  { id: "codm", name: "Call of Duty Mobile" },
+  { id: "hok", name: "Honor of Kings" },
+  { id: "aov", name: "Arena of Valor" },
 ];
 
 export const NOMINALS = {
@@ -20,6 +20,7 @@ export const NOMINALS = {
     { label: "706 Diamond", price: 172000 },
     { label: "1412 Diamond", price: 339000 },
   ],
+
   ff: [
     { label: "5 Diamond", price: 1000 },
     { label: "12 Diamond", price: 2000 },
@@ -29,6 +30,7 @@ export const NOMINALS = {
     { label: "720 Diamond", price: 102000 },
     { label: "1450 Diamond", price: 199000 },
   ],
+
   pubg: [
     { label: "60 UC", price: 15000 },
     { label: "325 UC", price: 75000 },
@@ -36,29 +38,34 @@ export const NOMINALS = {
     { label: "1800 UC", price: 379000 },
     { label: "3850 UC", price: 749000 },
   ],
+
   valo: [
     { label: "125 Points", price: 18000 },
     { label: "420 Points", price: 55000 },
     { label: "700 Points", price: 89000 },
     { label: "1750 Points", price: 215000 },
   ],
+
   genshin: [
     { label: "60 Genesis Crystal", price: 16000 },
     { label: "300 Genesis Crystal", price: 76000 },
     { label: "980 Genesis Crystal", price: 239000 },
     { label: "1980 Genesis Crystal", price: 469000 },
   ],
+
   codm: [
     { label: "80 CP", price: 15000 },
     { label: "400 CP", price: 73000 },
     { label: "800 CP", price: 143000 },
     { label: "2000 CP", price: 349000 },
   ],
+
   hok: [
     { label: "50 Token", price: 12000 },
     { label: "250 Token", price: 55000 },
     { label: "500 Token", price: 105000 },
   ],
+
   aov: [
     { label: "50 Voucher", price: 11000 },
     { label: "150 Voucher", price: 32000 },
@@ -70,7 +77,6 @@ export const JOKI_GAMES = [
   {
     id: "ml",
     name: "Mobile Legends",
-    icon: "⚔️",
     ranks: [
       "Warrior",
       "Elite",
@@ -86,7 +92,6 @@ export const JOKI_GAMES = [
   {
     id: "ff",
     name: "Free Fire",
-    icon: "🔥",
     ranks: [
       "Bronze",
       "Silver",
@@ -102,7 +107,6 @@ export const JOKI_GAMES = [
   {
     id: "pubg",
     name: "PUBG Mobile",
-    icon: "🎯",
     ranks: [
       "Bronze",
       "Silver",
@@ -118,7 +122,6 @@ export const JOKI_GAMES = [
   {
     id: "valo",
     name: "Valorant",
-    icon: "🎮",
     ranks: [
       "Iron",
       "Bronze",
@@ -134,7 +137,6 @@ export const JOKI_GAMES = [
   {
     id: "genshin",
     name: "Genshin Impact",
-    icon: "✨",
     ranks: [
       "AR 1-10",
       "AR 11-20",
@@ -148,7 +150,6 @@ export const JOKI_GAMES = [
   {
     id: "codm",
     name: "Call of Duty Mobile",
-    icon: "🪖",
     ranks: [
       "Rookie",
       "Veteran",
@@ -162,7 +163,6 @@ export const JOKI_GAMES = [
   {
     id: "hok",
     name: "Honor of Kings",
-    icon: "👑",
     ranks: [
       "Bronze",
       "Silver",
@@ -177,7 +177,6 @@ export const JOKI_GAMES = [
   {
     id: "aov",
     name: "Arena of Valor",
-    icon: "🏹",
     ranks: [
       "Bronze",
       "Silver",
@@ -325,5 +324,6 @@ export const AKUN_LIST = [
   },
 ];
 
-export const formatRp = (n) =>
-  "Rp " + Number(n || 0).toLocaleString("id-ID");
+export const formatRp = (value) => {
+  return "Rp " + Number(value || 0).toLocaleString("id-ID");
+};

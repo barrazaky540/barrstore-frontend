@@ -1,3 +1,4 @@
+
 import { useEffect, useMemo, useState } from "react";
 import {
   GAMES,
@@ -12,8 +13,18 @@ import Admin from "./Admin";
 const API_URL = "https://barrstore-backend-bhjj.vercel.app";
 
 function App() {
+  const safeGames = Array.isArray(GAMES) ? GAMES : [];
+  const safeJokiGames = Array.isArray(JOKI_GAMES)
+    ? JOKI_GAMES
+    : [];
+  const safeAccounts = Array.isArray(AKUN_LIST)
+    ? AKUN_LIST
+    : [];
+
   const [service, setService] = useState("topup");
-  const [selectedGame, setSelectedGame] = useState("ml");
+  const [selectedGame, setSelectedGame] = useState(
+    safeGames[0]?.id || "ml"
+  );
 
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
@@ -73,7 +84,6 @@ function App() {
 
   const [voucherMessage, setVoucherMessage] = useState("");
   const [voucherLoading, setVoucherLoading] = useState(false);
-
   const [discount, setDiscount] = useState(0);
 
   const [loading, setLoading] = useState(false);
@@ -85,33 +95,59 @@ function App() {
   const [reviewText, setReviewText] = useState("");
   const [reviewLoading, setReviewLoading] = useState(false);
 
-  const currentGame = useMemo(
-    () =>
-      GAMES.find((game) => game.id === selectedGame) ||
-      GAMES[0],
-    [selectedGame]
-  );
+  const currentGame = useMemo(() => {
+    return (
+      safeGames.find(
+        (game) => game && game.id === selectedGame
+      ) ||
+      safeGames[0] ||
+      {
+        id: selectedGame,
+        name: selectedGame,
+      }
+    );
+  }, [selectedGame]);
 
-  const currentNominals = NOMINALS[selectedGame] || [];
+  const currentNominals =
+    NOMINALS &&
+    typeof NOMINALS === "object" &&
+    Array.isArray(NOMINALS[selectedGame])
+      ? NOMINALS[selectedGame]
+      : [];
 
   const currentJokiGame =
-    JOKI_GAMES.find((game) => game.id === selectedGame) ||
-    JOKI_GAMES[0];
+    safeJokiGames.find(
+      (game) => game && game.id === selectedGame
+    ) ||
+    safeJokiGames[0] ||
+    {
+      id: selectedGame,
+      name: currentGame.name || selectedGame,
+      ranks: [],
+    };
+
+  const currentRanks = Array.isArray(
+    currentJokiGame.ranks
+  )
+    ? currentJokiGame.ranks
+    : [];
 
   const selectedNominal = currentNominals.find(
-    (item) => item.label === topupForm.nominal
+    (item) => item && item.label === topupForm.nominal
   );
 
-  const selectedAccount = AKUN_LIST.find(
+  const selectedAccount = safeAccounts.find(
     (account) =>
-      String(account.id) === String(akunForm.accountId)
+      account &&
+      String(account.id) ===
+        String(akunForm.accountId)
   );
 
   const currentRankIndex =
-    currentJokiGame.ranks.indexOf(jokiForm.currentRank);
+    currentRanks.indexOf(jokiForm.currentRank);
 
   const targetRankIndex =
-    currentJokiGame.ranks.indexOf(jokiForm.targetRank);
+    currentRanks.indexOf(jokiForm.targetRank);
 
   const jokiTierDifference =
     currentRankIndex >= 0 &&
@@ -122,7 +158,11 @@ function App() {
 
   const jokiPrice =
     jokiTierDifference *
-    Number(JOKI_PRICE_PER_TIER[selectedGame] || 0);
+    Number(
+      (JOKI_PRICE_PER_TIER &&
+        JOKI_PRICE_PER_TIER[selectedGame]) ||
+        0
+    );
 
   const basePrice =
     service === "topup"
@@ -131,15 +171,71 @@ function App() {
       ? jokiPrice
       : Number(selectedAccount?.price || 0);
 
-  const finalPrice = Math.max(0, basePrice - discount);
+  const finalPrice = Math.max(
+    0,
+    basePrice - discount
+  );
 
-  /* =====================================================
-     REVIEW PUBLIC
-  ===================================================== */
+  function getTopupConfig() {
+    if (selectedGame === "ml") {
+      return {
+        primaryLabel: "User ID",
+        primaryPlaceholder: "Contoh: 12345678",
+        secondaryLabel: "Server ID",
+        secondaryPlaceholder: "Contoh: 1234",
+        secondaryVisible: true,
+        primarySummaryLabel: "User ID",
+        secondarySummaryLabel: "Server ID",
+      };
+    }
+
+    if (selectedGame === "genshin") {
+      return {
+        primaryLabel: "UID",
+        primaryPlaceholder: "Contoh: 800123456",
+        secondaryLabel: "Server Region",
+        secondaryPlaceholder: "Pilih server",
+        secondaryVisible: true,
+        primarySummaryLabel: "UID",
+        secondarySummaryLabel: "Server",
+      };
+    }
+
+    if (selectedGame === "valo") {
+      return {
+        primaryLabel: "Riot ID",
+        primaryPlaceholder: "Contoh: Barra#1234",
+        secondaryLabel: "",
+        secondaryPlaceholder: "",
+        secondaryVisible: false,
+        primarySummaryLabel: "Riot ID",
+        secondarySummaryLabel: "",
+      };
+    }
+
+    return {
+      primaryLabel: "Player ID",
+      primaryPlaceholder: "Masukkan Player ID",
+      secondaryLabel: "",
+      secondaryPlaceholder: "",
+      secondaryVisible: false,
+      primarySummaryLabel: "Player ID",
+      secondarySummaryLabel: "",
+    };
+  }
+
+  const topupConfig = getTopupConfig();
+  const isGenshin = selectedGame === "genshin";
 
   const validReviews = useMemo(() => {
-    return reviews
+    const safeReviews = Array.isArray(reviews)
+      ? reviews
+      : [];
+
+    return safeReviews
       .map((review) => {
+        if (!review) return null;
+
         const reviewRating = Number(
           review.rating ??
             review.review_rating ??
@@ -149,7 +245,7 @@ function App() {
             0
         );
 
-        const reviewText =
+        const reviewTextValue =
           review.review ??
           review.ulasan ??
           review.comment ??
@@ -171,7 +267,9 @@ function App() {
             0,
             Math.min(5, reviewRating)
           ),
-          normalizedText: String(reviewText || "").trim(),
+          normalizedText: String(
+            reviewTextValue || ""
+          ).trim(),
           normalizedUsername: String(
             username || "Customer"
           ),
@@ -179,8 +277,9 @@ function App() {
       })
       .filter(
         (review) =>
-          review.normalizedRating > 0 ||
-          review.normalizedText
+          review &&
+          (review.normalizedRating > 0 ||
+            review.normalizedText)
       );
   }, [reviews]);
 
@@ -192,7 +291,8 @@ function App() {
     if (!ratedReviews.length) return 0;
 
     const total = ratedReviews.reduce(
-      (sum, review) => sum + review.normalizedRating,
+      (sum, review) =>
+        sum + review.normalizedRating,
       0
     );
 
@@ -209,7 +309,9 @@ function App() {
     };
 
     validReviews.forEach((review) => {
-      const value = Math.round(review.normalizedRating);
+      const value = Math.round(
+        review.normalizedRating
+      );
 
       if (counts[value] !== undefined) {
         counts[value]++;
@@ -237,6 +339,8 @@ function App() {
 
       return () => clearInterval(interval);
     }
+
+    return undefined;
   }, [showOrders, user]);
 
   useEffect(() => {
@@ -247,6 +351,8 @@ function App() {
       setTopupForm((prev) => ({
         ...prev,
         nominal: "",
+        userId: "",
+        serverId: "",
       }));
     }
 
@@ -266,9 +372,9 @@ function App() {
     }
   }, [selectedGame, service]);
 
-  function showMessage(text, type = "info") {
+  function showMessage(text, type) {
     setMessage(text);
-    setMessageType(type);
+    setMessageType(type || "info");
 
     setTimeout(() => {
       setMessage("");
@@ -287,15 +393,15 @@ function App() {
     return "border-orange-500/20 bg-orange-500/10 text-orange-400";
   }
 
-  /* =====================================================
-     LOAD ORDERS
-  ===================================================== */
-
-  async function loadOrders(silent = false) {
+  async function loadOrders(silent) {
     if (!user?.username) return;
 
+    const isSilent = silent === true;
+
     try {
-      if (!silent) setLoading(true);
+      if (!isSilent) {
+        setLoading(true);
+      }
 
       const response = await fetch(
         API_URL +
@@ -309,16 +415,18 @@ function App() {
       );
 
       if (!response.ok) {
-        throw new Error("Gagal mengambil pesanan.");
+        throw new Error(
+          "Gagal mengambil pesanan."
+        );
       }
 
       const data = await response.json();
 
       const orderData = Array.isArray(data)
         ? data
-        : Array.isArray(data.orders)
+        : Array.isArray(data?.orders)
         ? data.orders
-        : Array.isArray(data.data)
+        : Array.isArray(data?.data)
         ? data.data
         : [];
 
@@ -326,25 +434,25 @@ function App() {
     } catch (error) {
       console.error("ORDERS ERROR:", error);
 
-      if (!silent) {
+      if (!isSilent) {
         showMessage(
           "Gagal mengambil data pesanan.",
           "error"
         );
       }
     } finally {
-      if (!silent) setLoading(false);
+      if (!isSilent) {
+        setLoading(false);
+      }
     }
   }
-
-  /* =====================================================
-     LOAD REVIEWS
-  ===================================================== */
 
   async function loadReviews() {
     try {
       const response = await fetch(
-        API_URL + "/api/reviews?t=" + Date.now(),
+        API_URL +
+          "/api/reviews?t=" +
+          Date.now(),
         {
           cache: "no-store",
         }
@@ -358,9 +466,13 @@ function App() {
 
       if (Array.isArray(data)) {
         reviewData = data;
-      } else if (Array.isArray(data.reviews)) {
+      } else if (
+        Array.isArray(data?.reviews)
+      ) {
         reviewData = data.reviews;
-      } else if (Array.isArray(data.data)) {
+      } else if (
+        Array.isArray(data?.data)
+      ) {
         reviewData = data.data;
       }
 
@@ -369,10 +481,6 @@ function App() {
       console.error("REVIEW ERROR:", error);
     }
   }
-
-  /* =====================================================
-     LOGIN
-  ===================================================== */
 
   async function handleLogin(e) {
     e.preventDefault();
@@ -406,11 +514,12 @@ function App() {
 
       if (!response.ok) {
         throw new Error(
-          data.message || "Login gagal."
+          data?.message || "Login gagal."
         );
       }
 
-      const loggedUser = data.user || data;
+      const loggedUser =
+        data?.user || data;
 
       setUser(loggedUser);
 
@@ -434,17 +543,13 @@ function App() {
       console.error(error);
 
       showMessage(
-        error.message || "Login gagal.",
+        error?.message || "Login gagal.",
         "error"
       );
     } finally {
       setLoading(false);
     }
   }
-
-  /* =====================================================
-     REGISTER
-  ===================================================== */
 
   async function handleRegister(e) {
     e.preventDefault();
@@ -486,7 +591,7 @@ function App() {
 
       if (!response.ok) {
         throw new Error(
-          data.message || "Registrasi gagal."
+          data?.message || "Registrasi gagal."
         );
       }
 
@@ -506,17 +611,13 @@ function App() {
       console.error(error);
 
       showMessage(
-        error.message || "Registrasi gagal.",
+        error?.message || "Registrasi gagal.",
         "error"
       );
     } finally {
       setLoading(false);
     }
   }
-
-  /* =====================================================
-     LOGOUT
-  ===================================================== */
 
   function logout() {
     localStorage.removeItem("barrstore_user");
@@ -525,15 +626,16 @@ function App() {
     setOrders([]);
     setShowOrders(false);
 
-    showMessage("Berhasil logout.", "success");
+    showMessage(
+      "Berhasil logout.",
+      "success"
+    );
   }
 
-  /* =====================================================
-     VOUCHER
-  ===================================================== */
-
   async function checkVoucher(code, price) {
-    if (!code.trim()) {
+    const voucherCode = String(code || "");
+
+    if (!voucherCode.trim()) {
       setDiscount(0);
       setVoucherMessage("");
       return;
@@ -558,7 +660,9 @@ function App() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            code: code.trim().toUpperCase(),
+            code: voucherCode
+              .trim()
+              .toUpperCase(),
             price,
           }),
         }
@@ -566,18 +670,19 @@ function App() {
 
       const data = await response.json();
 
-      if (!response.ok || !data.success) {
+      if (!response.ok || !data?.success) {
         setDiscount(0);
 
         setVoucherMessage(
-          data.message || "Voucher tidak valid."
+          data?.message ||
+            "Voucher tidak valid."
         );
 
         return;
       }
 
       const newDiscount = Math.min(
-        Number(data.discount || 0),
+        Number(data?.discount || 0),
         price
       );
 
@@ -620,10 +725,6 @@ function App() {
       .replace(/^0/, "62");
   }
 
-  /* =====================================================
-     SUBMIT ORDER
-  ===================================================== */
-
   async function submitOrder() {
     if (!requireLogin()) return;
 
@@ -632,7 +733,6 @@ function App() {
         "Silakan pilih produk terlebih dahulu.",
         "error"
       );
-
       return;
     }
 
@@ -644,16 +744,27 @@ function App() {
           "Pilih nominal top up.",
           "error"
         );
-
         return;
       }
 
       if (!topupForm.userId.trim()) {
         showMessage(
-          "ID game wajib diisi.",
+          topupConfig.primaryLabel +
+            " wajib diisi.",
           "error"
         );
+        return;
+      }
 
+      if (
+        topupConfig.secondaryVisible &&
+        !topupForm.serverId.trim()
+      ) {
+        showMessage(
+          topupConfig.secondaryLabel +
+            " wajib diisi.",
+          "error"
+        );
         return;
       }
 
@@ -662,22 +773,24 @@ function App() {
           "Nomor WhatsApp wajib diisi.",
           "error"
         );
-
         return;
       }
 
       payload = {
         service: "topup",
-        game: currentGame.name,
+        game:
+          currentGame.name ||
+          selectedGame,
         nominal: topupForm.nominal,
         price: basePrice,
         discount,
         finalPrice,
-        voucher:
-          topupForm.voucher.trim().toUpperCase(),
-        nickname: topupForm.nickname,
+        voucher: topupForm.voucher
+          .trim()
+          .toUpperCase(),
         userId: topupForm.userId,
         serverId: topupForm.serverId,
+        nickname: topupForm.nickname,
         whatsapp: normalizeWhatsapp(
           topupForm.whatsapp
         ),
@@ -694,16 +807,16 @@ function App() {
           "Pilih rank awal dan rank tujuan.",
           "error"
         );
-
         return;
       }
 
-      if (targetRankIndex <= currentRankIndex) {
+      if (
+        targetRankIndex <= currentRankIndex
+      ) {
         showMessage(
           "Rank tujuan harus lebih tinggi dari rank sekarang.",
           "error"
         );
-
         return;
       }
 
@@ -715,7 +828,6 @@ function App() {
           "Email dan password akun wajib diisi untuk layanan joki.",
           "error"
         );
-
         return;
       }
 
@@ -724,18 +836,20 @@ function App() {
           "Nomor WhatsApp wajib diisi.",
           "error"
         );
-
         return;
       }
 
       payload = {
         service: "joki",
-        game: currentJokiGame.name,
+        game:
+          currentJokiGame.name ||
+          selectedGame,
         price: basePrice,
         discount,
         finalPrice,
-        voucher:
-          jokiForm.voucher.trim().toUpperCase(),
+        voucher: jokiForm.voucher
+          .trim()
+          .toUpperCase(),
         nickname: "",
         whatsapp: normalizeWhatsapp(
           jokiForm.whatsapp
@@ -755,7 +869,6 @@ function App() {
           "Pilih akun terlebih dahulu.",
           "error"
         );
-
         return;
       }
 
@@ -764,7 +877,6 @@ function App() {
           "Nomor WhatsApp wajib diisi.",
           "error"
         );
-
         return;
       }
 
@@ -776,8 +888,9 @@ function App() {
         price: basePrice,
         discount,
         finalPrice,
-        voucher:
-          akunForm.voucher.trim().toUpperCase(),
+        voucher: akunForm.voucher
+          .trim()
+          .toUpperCase(),
         nickname: akunForm.nickname,
         whatsapp: normalizeWhatsapp(
           akunForm.whatsapp
@@ -810,7 +923,7 @@ function App() {
 
       if (!response.ok) {
         throw new Error(
-          data.message ||
+          data?.message ||
             "Gagal membuat pesanan."
         );
       }
@@ -852,13 +965,12 @@ function App() {
       });
 
       await loadOrders(true);
-
       setShowOrders(true);
     } catch (error) {
       console.error(error);
 
       showMessage(
-        error.message ||
+        error?.message ||
           "Gagal membuat pesanan.",
         "error"
       );
@@ -866,10 +978,6 @@ function App() {
       setLoading(false);
     }
   }
-
-  /* =====================================================
-     REVIEW
-  ===================================================== */
 
   async function submitReview() {
     if (!ratingOrder) return;
@@ -907,7 +1015,7 @@ function App() {
 
       if (!response.ok) {
         throw new Error(
-          data.message ||
+          data?.message ||
             "Gagal mengirim review."
         );
       }
@@ -930,7 +1038,7 @@ function App() {
       );
 
       showMessage(
-        error.message ||
+        error?.message ||
           "Gagal mengirim review.",
         "error"
       );
@@ -947,24 +1055,28 @@ function App() {
       : akunForm.voucher;
 
   function setVoucherCode(value) {
+    const newValue = String(
+      value || ""
+    ).toUpperCase();
+
     if (service === "topup") {
       setTopupForm((prev) => ({
         ...prev,
-        voucher: value.toUpperCase(),
+        voucher: newValue,
       }));
     }
 
     if (service === "joki") {
       setJokiForm((prev) => ({
         ...prev,
-        voucher: value.toUpperCase(),
+        voucher: newValue,
       }));
     }
 
     if (service === "akun") {
       setAkunForm((prev) => ({
         ...prev,
-        voucher: value.toUpperCase(),
+        voucher: newValue,
       }));
     }
 
@@ -973,8 +1085,13 @@ function App() {
   }
 
   function getServiceTitle() {
-    if (service === "topup") return "Top Up Game";
-    if (service === "joki") return "Joki Rank";
+    if (service === "topup") {
+      return "Top Up Game";
+    }
+
+    if (service === "joki") {
+      return "Joki Rank";
+    }
 
     return "Beli Akun";
   }
@@ -1003,14 +1120,9 @@ function App() {
   return (
     <div className="min-h-screen bg-[#0b0d12] text-slate-100">
 
-      {/* =====================================================
-          NAVBAR
-      ===================================================== */}
-
       <header className="sticky top-0 z-40 border-b border-white/10 bg-[#0b0d12]/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4">
 
-          {/* LOGO */}
           <button
             onClick={() =>
               window.scrollTo({
@@ -1028,7 +1140,8 @@ function App() {
 
             <div>
               <div className="text-2xl font-black tracking-tight text-white">
-                Barr<span className="text-orange-400">
+                Barr
+                <span className="text-orange-400">
                   Store
                 </span>
               </div>
@@ -1090,6 +1203,7 @@ function App() {
                 Pesanan Saya
               </button>
             )}
+
           </nav>
 
           <div className="flex items-center gap-2">
@@ -1138,10 +1252,6 @@ function App() {
         </div>
       </header>
 
-      {/* =====================================================
-          MESSAGE
-      ===================================================== */}
-
       {message && (
         <div className="fixed left-1/2 top-20 z-[70] w-[calc(100%-32px)] max-w-lg -translate-x-1/2">
           <div
@@ -1156,10 +1266,6 @@ function App() {
       )}
 
       <main>
-
-        {/* =====================================================
-            HERO
-        ===================================================== */}
 
         <section className="relative overflow-hidden border-b border-white/10 bg-[#0b0d12]">
 
@@ -1231,10 +1337,6 @@ function App() {
           </div>
         </section>
 
-        {/* =====================================================
-            GAME CATALOG
-        ===================================================== */}
-
         <section
           id="games"
           className="mx-auto max-w-7xl px-4 py-10"
@@ -1253,76 +1355,86 @@ function App() {
             </div>
 
             <span className="text-sm text-slate-500">
-              {GAMES.length} game tersedia
+              {safeGames.length} game tersedia
             </span>
 
           </div>
 
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
+          {safeGames.length === 0 ? (
+            <div className="rounded-3xl border border-dashed border-white/10 bg-[#151820] p-10 text-center">
+              <div className="text-4xl">
+                🎮
+              </div>
 
-            {GAMES.map((game) => {
-              const active =
-                selectedGame === game.id;
+              <p className="mt-3 font-bold text-slate-400">
+                Data game belum tersedia.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
 
-              const imageSrc = game?.image
-                ? game.image
-                : `/images/games/${game.id}.jpeg`;
+              {safeGames.map((game) => {
+                if (!game) return null;
 
-              return (
-                <button
-                  key={game.id}
-                  onClick={() =>
-                    setSelectedGame(game.id)
-                  }
-                  className={
-                    "group overflow-hidden rounded-2xl border text-left shadow-lg transition " +
-                    (active
-                      ? "border-orange-500 bg-orange-500/10 shadow-orange-500/10"
-                      : "border-white/10 bg-[#151820] hover:border-orange-400/40 hover:shadow-orange-500/5")
-                  }
-                >
+                const active =
+                  selectedGame === game.id;
 
-                  <div className="aspect-square overflow-hidden bg-[#101319]">
+                const imageSrc = game?.image
+                  ? game.image
+                  : "/images/games/" +
+                    game.id +
+                    ".jpeg";
 
-                    <img
-                      src={imageSrc}
-                      alt={game.name}
-                      className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-                      onError={(e) => {
-                        e.currentTarget.style.display =
-                          "none";
-                      }}
-                    />
+                return (
+                  <button
+                    key={game.id}
+                    onClick={() =>
+                      setSelectedGame(game.id)
+                    }
+                    className={
+                      "group overflow-hidden rounded-2xl border text-left shadow-lg transition " +
+                      (active
+                        ? "border-orange-500 bg-orange-500/10 shadow-orange-500/10"
+                        : "border-white/10 bg-[#151820] hover:border-orange-400/40 hover:shadow-orange-500/5")
+                    }
+                  >
 
-                  </div>
+                    <div className="aspect-square overflow-hidden bg-[#101319]">
 
-                  <div className="p-3">
+                      <img
+                        src={imageSrc}
+                        alt={game.name || "Game"}
+                        className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                        onError={(e) => {
+                          e.currentTarget.style.display =
+                            "none";
+                        }}
+                      />
 
-                    <div className="text-lg">
-                      {game.icon}
                     </div>
 
-                    <p className="mt-1 line-clamp-2 text-xs font-black leading-5 text-slate-100">
-                      {game.name}
-                    </p>
+                    <div className="p-3">
 
-                    {active && (
-                      <p className="mt-2 text-[10px] font-black uppercase tracking-wider text-orange-400">
-                        Dipilih
+                      <p className="line-clamp-2 text-xs font-black leading-5 text-slate-100">
+                        {game.name || "Game"}
                       </p>
-                    )}
 
-                  </div>
-                </button>
-              );
-            })}
+                      {active && (
+                        <p className="mt-2 text-[10px] font-black uppercase tracking-wider text-orange-400">
+                          Dipilih
+                        </p>
+                      )}
 
-          </div>
+                    </div>
+
+                  </button>
+                );
+              })}
+
+            </div>
+          )}
+
         </section>
-
-        {/* =====================================================
-            ORDER AREA
-        ===================================================== */}
 
         <section
           id="order"
@@ -1330,8 +1442,6 @@ function App() {
         >
 
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-
-            {/* FORM */}
 
             <div className="min-w-0 rounded-3xl border border-white/10 bg-[#151820] shadow-2xl shadow-black/20">
 
@@ -1362,7 +1472,8 @@ function App() {
                     </p>
 
                     <p className="font-black text-orange-400">
-                      {currentGame.name}
+                      {currentGame.name ||
+                        selectedGame}
                     </p>
 
                   </div>
@@ -1405,8 +1516,6 @@ function App() {
 
               <div className="p-5 sm:p-6">
 
-                {/* TOPUP */}
-
                 {service === "topup" && (
                   <div className="space-y-6">
 
@@ -1416,60 +1525,73 @@ function App() {
                         Pilih Nominal
                       </label>
 
-                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                      {currentNominals.length ===
+                      0 ? (
+                        <div className="rounded-2xl border border-dashed border-white/10 bg-[#101319] p-6 text-center text-sm text-slate-500">
+                          Nominal untuk game ini
+                          belum tersedia.
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
 
-                        {currentNominals.map(
-                          (nominal) => {
-                            const active =
-                              topupForm.nominal ===
-                              nominal.label;
+                          {currentNominals.map(
+                            (nominal) => {
+                              if (!nominal) {
+                                return null;
+                              }
 
-                            return (
-                              <button
-                                key={
-                                  nominal.label
-                                }
-                                onClick={() =>
-                                  setTopupForm(
-                                    (prev) => ({
-                                      ...prev,
-                                      nominal:
-                                        nominal.label,
-                                    })
-                                  )
-                                }
-                                className={
-                                  "rounded-xl border p-4 text-left transition " +
-                                  (active
-                                    ? "border-orange-500 bg-orange-500/10 shadow-lg shadow-orange-500/10"
-                                    : "border-white/10 bg-[#101319] hover:border-orange-400/40 hover:bg-orange-500/5")
-                                }
-                              >
+                              const active =
+                                topupForm.nominal ===
+                                nominal.label;
 
-                                <p className="text-sm font-black text-slate-100">
-                                  {
+                              return (
+                                <button
+                                  key={
                                     nominal.label
                                   }
-                                </p>
+                                  onClick={() =>
+                                    setTopupForm(
+                                      (prev) => ({
+                                        ...prev,
+                                        nominal:
+                                          nominal.label,
+                                      })
+                                    )
+                                  }
+                                  className={
+                                    "rounded-xl border p-4 text-left transition " +
+                                    (active
+                                      ? "border-orange-500 bg-orange-500/10 shadow-lg shadow-orange-500/10"
+                                      : "border-white/10 bg-[#101319] hover:border-orange-400/40 hover:bg-orange-500/5")
+                                  }
+                                >
 
-                                <p className="mt-2 text-sm font-bold text-orange-400">
-                                  {formatRp(
-                                    nominal.price
-                                  )}
-                                </p>
+                                  <p className="text-sm font-black text-slate-100">
+                                    {nominal.label}
+                                  </p>
 
-                              </button>
-                            );
-                          }
-                        )}
+                                  <p className="mt-2 text-sm font-bold text-orange-400">
+                                    {formatRp(
+                                      nominal.price
+                                    )}
+                                  </p>
 
-                      </div>
+                                </button>
+                              );
+                            }
+                          )}
+
+                        </div>
+                      )}
+
                     </div>
 
                     <div className="grid gap-4 sm:grid-cols-2">
 
                       <Input
-                        label="User ID"
+                        label={
+                          topupConfig.primaryLabel
+                        }
                         value={
                           topupForm.userId
                         }
@@ -1481,24 +1603,56 @@ function App() {
                             })
                           )
                         }
-                        placeholder="Contoh: 12345678"
+                        placeholder={
+                          topupConfig.primaryPlaceholder
+                        }
                       />
 
-                      <Input
-                        label="Server ID"
-                        value={
-                          topupForm.serverId
-                        }
-                        onChange={(value) =>
-                          setTopupForm(
-                            (prev) => ({
-                              ...prev,
-                              serverId: value,
-                            })
-                          )
-                        }
-                        placeholder="Contoh: 1234"
-                      />
+                      {topupConfig.secondaryVisible &&
+                        (isGenshin ? (
+                          <SelectInput
+                            label="Server Region"
+                            value={
+                              topupForm.serverId
+                            }
+                            onChange={(value) =>
+                              setTopupForm(
+                                (prev) => ({
+                                  ...prev,
+                                  serverId:
+                                    value,
+                                })
+                              )
+                            }
+                            options={[
+                              "Asia",
+                              "America",
+                              "Europe",
+                              "TW, HK, MO",
+                            ]}
+                          />
+                        ) : (
+                          <Input
+                            label={
+                              topupConfig.secondaryLabel
+                            }
+                            value={
+                              topupForm.serverId
+                            }
+                            onChange={(value) =>
+                              setTopupForm(
+                                (prev) => ({
+                                  ...prev,
+                                  serverId:
+                                    value,
+                                })
+                              )
+                            }
+                            placeholder={
+                              topupConfig.secondaryPlaceholder
+                            }
+                          />
+                        ))}
 
                       <Input
                         label="Nickname"
@@ -1551,56 +1705,64 @@ function App() {
                   </div>
                 )}
 
-                {/* JOKI */}
-
                 {service === "joki" && (
                   <div className="space-y-6">
 
-                    <div className="grid gap-4 sm:grid-cols-2">
+                    {currentRanks.length ===
+                    0 ? (
+                      <div className="rounded-2xl border border-dashed border-white/10 bg-[#101319] p-6 text-center text-sm text-slate-500">
+                        Data rank untuk game ini
+                        belum tersedia.
+                      </div>
+                    ) : (
+                      <div className="grid gap-4 sm:grid-cols-2">
 
-                      <SelectInput
-                        label="Rank Sekarang"
-                        value={
-                          jokiForm.currentRank
-                        }
-                        onChange={(value) =>
-                          setJokiForm(
-                            (prev) => ({
-                              ...prev,
-                              currentRank:
-                                value,
-                              targetRank:
-                                "",
-                            })
-                          )
-                        }
-                        options={
-                          currentJokiGame.ranks
-                        }
-                      />
+                        <SelectInput
+                          label="Rank Sekarang"
+                          value={
+                            jokiForm.currentRank
+                          }
+                          onChange={(value) =>
+                            setJokiForm(
+                              (prev) => ({
+                                ...prev,
+                                currentRank:
+                                  value,
+                                targetRank:
+                                  "",
+                              })
+                            )
+                          }
+                          options={
+                            currentRanks
+                          }
+                        />
 
-                      <SelectInput
-                        label="Target Rank"
-                        value={
-                          jokiForm.targetRank
-                        }
-                        onChange={(value) =>
-                          setJokiForm(
-                            (prev) => ({
-                              ...prev,
-                              targetRank:
-                                value,
-                            })
-                          )
-                        }
-                        options={currentJokiGame.ranks.filter(
-                          (_, index) =>
-                            currentRankIndex < 0 ||
-                            index > currentRankIndex
-                        )}
-                      />
+                        <SelectInput
+                          label="Target Rank"
+                          value={
+                            jokiForm.targetRank
+                          }
+                          onChange={(value) =>
+                            setJokiForm(
+                              (prev) => ({
+                                ...prev,
+                                targetRank:
+                                  value,
+                              })
+                            )
+                          }
+                          options={currentRanks.filter(
+                            (_, index) =>
+                              currentRankIndex <
+                                0 ||
+                              index >
+                                currentRankIndex
+                          )}
+                        />
 
-                    </div>
+                      </div>
+                    )}
 
                     {jokiTierDifference > 0 && (
                       <div className="rounded-xl border border-orange-500/20 bg-orange-500/10 p-4">
@@ -1614,14 +1776,14 @@ function App() {
                             </p>
 
                             <p className="mt-1 text-lg font-black text-orange-400">
-                              {
-                                jokiTierDifference
-                              }{" "}
+                              {jokiTierDifference}{" "}
                               tier ×{" "}
                               {formatRp(
-                                JOKI_PRICE_PER_TIER[
-                                  selectedGame
-                                ]
+                                Number(
+                                  JOKI_PRICE_PER_TIER?.[
+                                    selectedGame
+                                  ] || 0
+                                )
                               )}
                             </p>
 
@@ -1634,6 +1796,7 @@ function App() {
                           </p>
 
                         </div>
+
                       </div>
                     )}
 
@@ -1722,8 +1885,6 @@ function App() {
                   </div>
                 )}
 
-                {/* AKUN */}
-
                 {service === "akun" && (
                   <div className="space-y-6">
 
@@ -1733,89 +1894,94 @@ function App() {
                         Pilih Akun
                       </label>
 
-                      <div className="space-y-3">
+                      {safeAccounts.length ===
+                      0 ? (
+                        <div className="rounded-2xl border border-dashed border-white/10 bg-[#101319] p-6 text-center text-sm text-slate-500">
+                          Belum ada akun yang
+                          tersedia.
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
 
-                        {AKUN_LIST.map(
-                          (account) => {
-                            const active =
-                              String(
-                                akunForm.accountId
-                              ) ===
-                              String(
-                                account.id
-                              );
+                          {safeAccounts.map(
+                            (account) => {
+                              if (!account) {
+                                return null;
+                              }
 
-                            return (
-                              <button
-                                key={
+                              const active =
+                                String(
+                                  akunForm.accountId
+                                ) ===
+                                String(
                                   account.id
-                                }
-                                onClick={() =>
-                                  setAkunForm(
-                                    (prev) => ({
-                                      ...prev,
-                                      accountId:
-                                        account.id,
-                                    })
-                                  )
-                                }
-                                className={
-                                  "w-full rounded-2xl border p-4 text-left transition " +
-                                  (active
-                                    ? "border-orange-500 bg-orange-500/10 shadow-lg shadow-orange-500/10"
-                                    : "border-white/10 bg-[#101319] hover:border-orange-400/40 hover:bg-orange-500/5")
-                                }
-                              >
+                                );
 
-                                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                              return (
+                                <button
+                                  key={
+                                    account.id
+                                  }
+                                  onClick={() =>
+                                    setAkunForm(
+                                      (prev) => ({
+                                        ...prev,
+                                        accountId:
+                                          account.id,
+                                      })
+                                    )
+                                  }
+                                  className={
+                                    "w-full rounded-2xl border p-4 text-left transition " +
+                                    (active
+                                      ? "border-orange-500 bg-orange-500/10 shadow-lg shadow-orange-500/10"
+                                      : "border-white/10 bg-[#101319] hover:border-orange-400/40 hover:bg-orange-500/5")
+                                  }
+                                >
 
-                                  <div className="min-w-0">
+                                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 
-                                    <div className="flex flex-wrap items-center gap-2">
+                                    <div className="min-w-0">
 
-                                      <span className="rounded-lg bg-orange-500/10 px-2 py-1 text-xs font-black text-orange-400">
-                                        {
-                                          account.game
-                                        }
-                                      </span>
+                                      <div className="flex flex-wrap items-center gap-2">
 
-                                      <span className="text-sm font-black text-slate-100">
-                                        {
-                                          account.rank
-                                        }
-                                      </span>
+                                        <span className="rounded-lg bg-orange-500/10 px-2 py-1 text-xs font-black text-orange-400">
+                                          {account.game}
+                                        </span>
 
-                                      <span className="text-xs text-slate-500">
-                                        Lv.{" "}
-                                        {
-                                          account.level
-                                        }
-                                      </span>
+                                        <span className="text-sm font-black text-slate-100">
+                                          {account.rank}
+                                        </span>
+
+                                        <span className="text-xs text-slate-500">
+                                          Lv.{" "}
+                                          {account.level}
+                                        </span>
+
+                                      </div>
+
+                                      <p className="mt-2 text-sm text-slate-400">
+                                        {account.note}
+                                      </p>
 
                                     </div>
 
-                                    <p className="mt-2 text-sm text-slate-400">
-                                      {
-                                        account.note
-                                      }
+                                    <p className="shrink-0 text-lg font-black text-orange-400">
+                                      {formatRp(
+                                        account.price
+                                      )}
                                     </p>
 
                                   </div>
 
-                                  <p className="shrink-0 text-lg font-black text-orange-400">
-                                    {formatRp(
-                                      account.price
-                                    )}
-                                  </p>
+                                </button>
+                              );
+                            }
+                          )}
 
-                                </div>
+                        </div>
+                      )}
 
-                              </button>
-                            );
-                          }
-                        )}
-
-                      </div>
                     </div>
 
                     <div className="grid gap-4 sm:grid-cols-2">
@@ -1873,8 +2039,6 @@ function App() {
                   </div>
                 )}
 
-                {/* VOUCHER */}
-
                 <div className="mt-7 border-t border-white/10 pt-6">
 
                   <label className="mb-2 block text-sm font-black text-slate-200">
@@ -1923,8 +2087,6 @@ function App() {
 
                 </div>
 
-                {/* SUBMIT */}
-
                 <button
                   onClick={submitOrder}
                   disabled={
@@ -1941,8 +2103,6 @@ function App() {
 
               </div>
             </div>
-
-            {/* ORDER SUMMARY */}
 
             <aside className="h-fit min-w-0 rounded-3xl border border-white/10 bg-[#151820] shadow-2xl shadow-black/20">
 
@@ -1971,7 +2131,8 @@ function App() {
                   </p>
 
                   <p className="mt-1 text-sm text-orange-400">
-                    {currentGame.name}
+                    {currentGame.name ||
+                      selectedGame}
                   </p>
 
                 </div>
@@ -1989,21 +2150,26 @@ function App() {
                       />
 
                       <SummaryRow
-                        label="User ID"
+                        label={
+                          topupConfig.primarySummaryLabel
+                        }
                         value={
                           topupForm.userId ||
                           "-"
                         }
                       />
 
-                      {topupForm.serverId && (
-                        <SummaryRow
-                          label="Server"
-                          value={
-                            topupForm.serverId
-                          }
-                        />
-                      )}
+                      {topupConfig.secondaryVisible &&
+                        topupForm.serverId && (
+                          <SummaryRow
+                            label={
+                              topupConfig.secondarySummaryLabel
+                            }
+                            value={
+                              topupForm.serverId
+                            }
+                          />
+                        )}
                     </>
                   )}
 
@@ -2029,7 +2195,8 @@ function App() {
                         label="Tier"
                         value={
                           jokiTierDifference
-                            ? `${jokiTierDifference} tier`
+                            ? jokiTierDifference +
+                              " tier"
                             : "-"
                         }
                       />
@@ -2128,8 +2295,6 @@ function App() {
           </div>
         </section>
 
-        {/* FEATURES */}
-
         <section className="border-y border-white/10 bg-[#101319]">
 
           <div className="mx-auto max-w-7xl px-4 py-12">
@@ -2159,8 +2324,6 @@ function App() {
           </div>
 
         </section>
-
-        {/* PUBLIC REVIEWS */}
 
         <section
           id="reviews"
@@ -2209,8 +2372,6 @@ function App() {
 
               <div className="grid gap-5 lg:grid-cols-[300px_minmax(0,1fr)]">
 
-                {/* RATING SUMMARY */}
-
                 <div className="h-fit rounded-3xl border border-white/10 bg-[#151820] p-6 shadow-lg">
 
                   <p className="text-sm font-bold text-slate-500">
@@ -2247,7 +2408,6 @@ function App() {
 
                     {[5, 4, 3, 2, 1].map(
                       (star) => {
-
                         const count =
                           ratingCounts[
                             star
@@ -2277,7 +2437,8 @@ function App() {
                                 className="h-full rounded-full bg-gradient-to-r from-orange-500 to-amber-400 transition-all duration-500"
                                 style={{
                                   width:
-                                    `${percentage}%`,
+                                    percentage +
+                                    "%",
                                 }}
                               />
 
@@ -2295,8 +2456,6 @@ function App() {
                   </div>
 
                 </div>
-
-                {/* REVIEW LIST */}
 
                 <div className="grid gap-4 sm:grid-cols-2">
 
@@ -2334,10 +2493,6 @@ function App() {
 
       </main>
 
-      {/* =====================================================
-          FOOTER
-      ===================================================== */}
-
       <footer className="border-t border-white/10 bg-[#080a0f]">
 
         <div className="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-8 sm:flex-row sm:items-center sm:justify-between">
@@ -2352,7 +2507,8 @@ function App() {
 
             <div>
               <div className="text-xl font-black text-white">
-                Barr<span className="text-orange-400">
+                Barr
+                <span className="text-orange-400">
                   Store
                 </span>
               </div>
@@ -2391,10 +2547,6 @@ function App() {
         </div>
 
       </footer>
-
-      {/* =====================================================
-          LOGIN MODAL
-      ===================================================== */}
 
       {showLogin && (
         <Modal
@@ -2482,10 +2634,6 @@ function App() {
         </Modal>
       )}
 
-      {/* =====================================================
-          REGISTER MODAL
-      ===================================================== */}
-
       {showRegister && (
         <Modal
           onClose={() =>
@@ -2571,10 +2719,6 @@ function App() {
 
         </Modal>
       )}
-
-      {/* =====================================================
-          ORDERS MODAL
-      ===================================================== */}
 
       {showOrders && (
         <Modal
@@ -2673,10 +2817,6 @@ function App() {
         </Modal>
       )}
 
-      {/* =====================================================
-          REVIEW MODAL
-      ===================================================== */}
-
       {ratingOrder && (
         <Modal
           onClose={() =>
@@ -2699,7 +2839,9 @@ function App() {
             </p>
 
             <p className="mt-2 text-xs font-bold text-orange-400">
-              Review sebagai: {user?.username || "Customer"}
+              Review sebagai:{" "}
+              {user?.username ||
+                "Customer"}
             </p>
 
           </div>
@@ -2756,13 +2898,9 @@ function App() {
   );
 }
 
-/* =====================================================
-   PUBLIC REVIEW CARD
-===================================================== */
-
 function PublicReviewCard({ review }) {
   const username =
-    review.normalizedUsername ||
+    review?.normalizedUsername ||
     "Customer";
 
   const maskedUsername =
@@ -2799,13 +2937,13 @@ function PublicReviewCard({ review }) {
 
         <div className="shrink-0 text-sm tracking-widest text-amber-400">
           {renderStars(
-            review.normalizedRating
+            review?.normalizedRating || 0
           )}
         </div>
 
       </div>
 
-      {review.normalizedText ? (
+      {review?.normalizedText ? (
         <p className="mt-5 text-sm leading-6 text-slate-400">
           "{review.normalizedText}"
         </p>
@@ -2820,16 +2958,12 @@ function PublicReviewCard({ review }) {
   );
 }
 
-/* =====================================================
-   INPUT
-===================================================== */
-
 function Input({
   label,
   value,
   onChange,
   placeholder,
-  type = "text",
+  type,
 }) {
   return (
     <div>
@@ -2839,8 +2973,8 @@ function Input({
       </label>
 
       <input
-        type={type}
-        value={value}
+        type={type || "text"}
+        value={value || ""}
         onChange={(e) =>
           onChange(e.target.value)
         }
@@ -2852,16 +2986,18 @@ function Input({
   );
 }
 
-/* =====================================================
-   SELECT INPUT
-===================================================== */
-
 function SelectInput({
   label,
   value,
   onChange,
   options,
 }) {
+  const safeOptions = Array.isArray(
+    options
+  )
+    ? options
+    : [];
+
   return (
     <div>
 
@@ -2870,7 +3006,7 @@ function SelectInput({
       </label>
 
       <select
-        value={value}
+        value={value || ""}
         onChange={(e) =>
           onChange(e.target.value)
         }
@@ -2884,7 +3020,7 @@ function SelectInput({
           Pilih {label}
         </option>
 
-        {options.map((option) => (
+        {safeOptions.map((option) => (
           <option
             key={option}
             value={option}
@@ -2900,10 +3036,6 @@ function SelectInput({
   );
 }
 
-/* =====================================================
-   TEXTAREA
-===================================================== */
-
 function Textarea({
   label,
   value,
@@ -2918,7 +3050,7 @@ function Textarea({
       </label>
 
       <textarea
-        value={value}
+        value={value || ""}
         onChange={(e) =>
           onChange(e.target.value)
         }
@@ -2931,14 +3063,10 @@ function Textarea({
   );
 }
 
-/* =====================================================
-   SUMMARY ROW
-===================================================== */
-
 function SummaryRow({
   label,
   value,
-  valueClass = "text-slate-300",
+  valueClass,
 }) {
   return (
     <div className="flex items-start justify-between gap-4">
@@ -2950,7 +3078,7 @@ function SummaryRow({
       <span
         className={
           "max-w-[65%] break-words text-right font-bold " +
-          valueClass
+          (valueClass || "text-slate-300")
         }
       >
         {value}
@@ -2959,10 +3087,6 @@ function SummaryRow({
     </div>
   );
 }
-
-/* =====================================================
-   FEATURE
-===================================================== */
 
 function Feature({
   icon,
@@ -2988,14 +3112,10 @@ function Feature({
   );
 }
 
-/* =====================================================
-   MODAL
-===================================================== */
-
 function Modal({
   children,
   onClose,
-  wide = false,
+  wide,
 }) {
   return (
     <div className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-black/70 p-4 backdrop-blur-md sm:items-center">
@@ -3030,30 +3150,28 @@ function Modal({
   );
 }
 
-/* =====================================================
-   ORDER CARD
-===================================================== */
-
 function OrderCard({
   order,
   onReview,
 }) {
+  const safeOrder = order || {};
+
   const statusClass =
-    order.status === "pending"
+    safeOrder.status === "pending"
       ? "border-amber-500/20 bg-amber-500/10 text-amber-400"
-      : order.status === "diproses"
+      : safeOrder.status === "diproses"
       ? "border-blue-500/20 bg-blue-500/10 text-blue-400"
-      : order.status === "selesai"
+      : safeOrder.status === "selesai"
       ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
-      : order.status === "dibatalkan"
+      : safeOrder.status === "dibatalkan"
       ? "border-red-500/20 bg-red-500/10 text-red-400"
       : "border-white/10 bg-white/5 text-slate-400";
 
   const canReview =
-    order.status === "selesai" &&
-    !order.rating &&
-    !order.review &&
-    !order.ulasan;
+    safeOrder.status === "selesai" &&
+    !safeOrder.rating &&
+    !safeOrder.review &&
+    !safeOrder.ulasan;
 
   return (
     <div className="rounded-2xl border border-white/10 bg-[#101319] p-5 shadow-lg">
@@ -3065,11 +3183,11 @@ function OrderCard({
           <div className="flex flex-wrap items-center gap-2">
 
             <span className="font-black text-white">
-              #{order.id}
+              #{safeOrder.id}
             </span>
 
             <span className="rounded-lg bg-orange-500/10 px-2 py-1 text-xs font-black text-orange-400">
-              {order.service ||
+              {safeOrder.service ||
                 "Order"}
             </span>
 
@@ -3079,20 +3197,21 @@ function OrderCard({
                 statusClass
               }
             >
-              {order.status}
+              {safeOrder.status ||
+                "unknown"}
             </span>
 
           </div>
 
           <p className="mt-3 font-black text-slate-100">
-            {order.game ||
+            {safeOrder.game ||
               "Layanan BarrStore"}
           </p>
 
           <p className="mt-1 text-sm text-slate-500">
-            {order.nominal ||
-              order.rank ||
-              order.note ||
+            {safeOrder.nominal ||
+              safeOrder.rank ||
+              safeOrder.note ||
               "-"}
           </p>
 
@@ -3100,8 +3219,8 @@ function OrderCard({
 
         <p className="shrink-0 text-lg font-black text-orange-400">
           {formatRp(
-            order.finalPrice ??
-              order.price ??
+            safeOrder.finalPrice ??
+              safeOrder.price ??
               0
           )}
         </p>
@@ -3117,33 +3236,33 @@ function OrderCard({
         </button>
       )}
 
-      {(order.rating ||
-        order.review ||
-        order.ulasan ||
-        order.comment) && (
+      {(safeOrder.rating ||
+        safeOrder.review ||
+        safeOrder.ulasan ||
+        safeOrder.comment) && (
 
         <div className="mt-4 rounded-xl border border-white/10 bg-[#151820] p-4">
 
           <p className="text-sm tracking-widest text-amber-400">
             {renderStars(
               Number(
-                order.rating ||
-                  order.review_rating ||
-                  order.reviewRating ||
-                  order.stars ||
+                safeOrder.rating ||
+                  safeOrder.review_rating ||
+                  safeOrder.reviewRating ||
+                  safeOrder.stars ||
                   0
               )
             )}
           </p>
 
-          {(order.review ||
-            order.ulasan ||
-            order.comment) && (
+          {(safeOrder.review ||
+            safeOrder.ulasan ||
+            safeOrder.comment) && (
             <p className="mt-2 text-sm text-slate-400">
               "
-              {order.review ||
-                order.ulasan ||
-                order.comment}
+              {safeOrder.review ||
+                safeOrder.ulasan ||
+                safeOrder.comment}
               "
             </p>
           )}
@@ -3154,10 +3273,6 @@ function OrderCard({
     </div>
   );
 }
-
-/* =====================================================
-   STARS
-===================================================== */
 
 function renderStars(rating) {
   const rounded = Math.round(
