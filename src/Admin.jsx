@@ -4,10 +4,6 @@ function Admin({ API_URL, onBack }) {
   const BASE_URL =
     API_URL || "https://barrstore-backend-bhjj.vercel.app";
 
-  // =========================
-  // AUTH
-  // =========================
-
   const [adminKey, setAdminKey] = useState(
     sessionStorage.getItem("barrstore_admin_key") || ""
   );
@@ -17,17 +13,9 @@ function Admin({ API_URL, onBack }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // =========================
-  // ORDERS
-  // =========================
-
   const [orders, setOrders] = useState([]);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("semua");
-
-  // =========================
-  // STATS
-  // =========================
 
   const [stats, setStats] = useState({
     totalOrders: 0,
@@ -38,10 +26,6 @@ function Admin({ API_URL, onBack }) {
     selesai: 0,
     dibatalkan: 0,
   });
-
-  // =========================
-  // VOUCHER
-  // =========================
 
   const [vouchers, setVouchers] = useState([]);
 
@@ -55,10 +39,6 @@ function Admin({ API_URL, onBack }) {
 
   const [voucherLoading, setVoucherLoading] = useState(false);
 
-  // =========================
-  // LOGIN
-  // =========================
-
   useEffect(() => {
     const savedKey = sessionStorage.getItem(
       "barrstore_admin_key"
@@ -68,10 +48,6 @@ function Admin({ API_URL, onBack }) {
       checkLogin(savedKey);
     }
   }, []);
-
-  // =========================
-  // AUTO REFRESH
-  // =========================
 
   useEffect(() => {
     if (!loggedIn || !adminKey) return;
@@ -83,17 +59,15 @@ function Admin({ API_URL, onBack }) {
     return () => clearInterval(interval);
   }, [loggedIn, adminKey]);
 
-  // =========================
-  // LOGIN CHECK
-  // =========================
-
   async function checkLogin(key) {
     try {
       setLoading(true);
       setError("");
 
       const response = await fetch(
-        BASE_URL + "/api/orders?t=" + Date.now(),
+        BASE_URL +
+          "/api/orders?t=" +
+          Date.now(),
         {
           headers: {
             "x-admin-key": key,
@@ -134,10 +108,6 @@ function Admin({ API_URL, onBack }) {
       setLoading(false);
     }
   }
-
-  // =========================
-  // LOAD STATS
-  // =========================
 
   async function loadStats(key = adminKey) {
     try {
@@ -188,10 +158,6 @@ function Admin({ API_URL, onBack }) {
     }
   }
 
-  // =========================
-  // LOAD VOUCHERS
-  // =========================
-
   async function loadVouchers(key = adminKey) {
     try {
       const response = await fetch(
@@ -219,13 +185,11 @@ function Admin({ API_URL, onBack }) {
     }
   }
 
-  // =========================
-  // REFRESH DATA
-  // =========================
-
   async function refreshData(silent = false) {
     try {
-      if (!silent) setLoading(true);
+      if (!silent) {
+        setLoading(true);
+      }
 
       const response = await fetch(
         BASE_URL +
@@ -259,13 +223,11 @@ function Admin({ API_URL, onBack }) {
         alert("Gagal memperbarui data.");
       }
     } finally {
-      if (!silent) setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
   }
-
-  // =========================
-  // LOGIN FORM
-  // =========================
 
   async function handleLogin(e) {
     e.preventDefault();
@@ -277,10 +239,6 @@ function Admin({ API_URL, onBack }) {
 
     await checkLogin(password);
   }
-
-  // =========================
-  // LOGOUT
-  // =========================
 
   function logout() {
     sessionStorage.removeItem(
@@ -304,10 +262,6 @@ function Admin({ API_URL, onBack }) {
       dibatalkan: 0,
     });
   }
-
-  // =========================
-  // UPDATE STATUS
-  // =========================
 
   async function updateStatus(id, status) {
     try {
@@ -356,10 +310,6 @@ function Admin({ API_URL, onBack }) {
     }
   }
 
-  // =========================
-  // CREATE VOUCHER
-  // =========================
-
   async function createVoucher(e) {
     e.preventDefault();
 
@@ -396,7 +346,8 @@ function Admin({ API_URL, onBack }) {
       setVoucherLoading(true);
 
       const response = await fetch(
-        BASE_URL + "/api/admin/vouchers",
+        BASE_URL +
+          "/api/admin/vouchers",
         {
           method: "POST",
           headers: {
@@ -433,7 +384,7 @@ function Admin({ API_URL, onBack }) {
       }
 
       alert(
-        "🎟️ Voucher " +
+        "Voucher " +
           code +
           " berhasil dibuat!"
       );
@@ -458,10 +409,6 @@ function Admin({ API_URL, onBack }) {
       setVoucherLoading(false);
     }
   }
-
-  // =========================
-  // TOGGLE VOUCHER
-  // =========================
 
   async function toggleVoucher(voucher) {
     const newActive =
@@ -506,10 +453,6 @@ function Admin({ API_URL, onBack }) {
     }
   }
 
-  // =========================
-  // FORMAT
-  // =========================
-
   function formatRp(value) {
     return (
       "Rp " +
@@ -521,19 +464,19 @@ function Admin({ API_URL, onBack }) {
 
   function getStatusClass(status) {
     if (status === "pending") {
-      return "border-yellow-500/20 bg-yellow-500/10 text-yellow-400";
+      return "border-amber-500/20 bg-amber-500/10 text-amber-300";
     }
 
     if (status === "diproses") {
-      return "border-blue-500/20 bg-blue-500/10 text-blue-400";
+      return "border-blue-500/20 bg-blue-500/10 text-blue-300";
     }
 
     if (status === "selesai") {
-      return "border-green-500/20 bg-green-500/10 text-green-400";
+      return "border-emerald-500/20 bg-emerald-500/10 text-emerald-300";
     }
 
     if (status === "dibatalkan") {
-      return "border-red-500/20 bg-red-500/10 text-red-400";
+      return "border-red-500/20 bg-red-500/10 text-red-300";
     }
 
     return "border-slate-700 bg-slate-800 text-slate-300";
@@ -561,10 +504,6 @@ function Admin({ API_URL, onBack }) {
     return date.toLocaleString("id-ID");
   }
 
-  // =========================
-  // DATE HELPER
-  // =========================
-
   function getOrderDate(order) {
     const raw =
       order.created_at ||
@@ -585,10 +524,6 @@ function Admin({ API_URL, onBack }) {
 
     return date;
   }
-
-  // =========================
-  // FILTER ORDER
-  // =========================
 
   const filteredOrders = useMemo(() => {
     return orders.filter((order) => {
@@ -624,10 +559,6 @@ function Admin({ API_URL, onBack }) {
     });
   }, [orders, search, filterStatus]);
 
-  // =========================
-  // DASHBOARD DATA
-  // =========================
-
   const dashboardData = useMemo(() => {
     const today = new Date();
 
@@ -639,10 +570,6 @@ function Admin({ API_URL, onBack }) {
         a.getDate() === b.getDate()
       );
     };
-
-    // =========================
-    // OMZET HARI INI
-    // =========================
 
     const omzetHariIni = orders
       .filter((order) => {
@@ -657,13 +584,13 @@ function Admin({ API_URL, onBack }) {
       .reduce(
         (total, order) =>
           total +
-          Number(order.price || 0),
+          Number(
+            order.finalPrice ??
+              order.price ??
+              0
+          ),
         0
       );
-
-    // =========================
-    // GAME TERLARIS
-    // =========================
 
     const gameMap = {};
 
@@ -683,10 +610,6 @@ function Admin({ API_URL, onBack }) {
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5);
 
-    // =========================
-    // SERVICE TERLARIS
-    // =========================
-
     const serviceMap = {};
 
     orders.forEach((order) => {
@@ -702,10 +625,6 @@ function Admin({ API_URL, onBack }) {
     )
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5);
-
-    // =========================
-    // RATING
-    // =========================
 
     const ratings = orders
       .map((order) => {
@@ -739,10 +658,6 @@ function Admin({ API_URL, onBack }) {
           ) / ratings.length
         : 0;
 
-    // =========================
-    // REVIEWS
-    // =========================
-
     const reviews = orders
       .filter((order) => {
         return Boolean(
@@ -762,10 +677,6 @@ function Admin({ API_URL, onBack }) {
       })
       .slice(0, 5);
 
-    // =========================
-    // RECENT ORDERS
-    // =========================
-
     const recentOrders = [...orders]
       .sort((a, b) => {
         const dateA =
@@ -784,10 +695,6 @@ function Admin({ API_URL, onBack }) {
         return dateB - dateA;
       })
       .slice(0, 5);
-
-    // =========================
-    // 7 DAYS CHART
-    // =========================
 
     const chartDays = [];
 
@@ -818,7 +725,11 @@ function Admin({ API_URL, onBack }) {
       const omzet = dayOrders.reduce(
         (total, order) =>
           total +
-          Number(order.price || 0),
+          Number(
+            order.finalPrice ??
+              order.price ??
+              0
+          ),
         0
       );
 
@@ -855,28 +766,30 @@ function Admin({ API_URL, onBack }) {
     };
   }, [orders]);
 
-  // =========================
-  // LOGIN SCREEN
-  // =========================
+  /* =====================================================
+     LOGIN ADMIN
+  ===================================================== */
 
   if (!loggedIn) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white">
+      <div className="min-h-screen bg-[#0b0d12] text-white">
         <div className="mx-auto flex min-h-screen max-w-md items-center px-4">
-          <div className="w-full rounded-3xl border border-slate-800 bg-slate-900 p-7 shadow-2xl">
-
+          <div className="w-full rounded-3xl border border-white/10 bg-[#151820] p-7 shadow-2xl shadow-orange-500/5">
             <div className="text-center">
-              <div className="text-5xl">
-                🛡️
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 via-orange-400 to-amber-300 text-2xl font-black text-black shadow-lg shadow-orange-500/20">
+                BS
               </div>
 
-              <h1 className="mt-4 text-3xl font-black">
-                Admin BarrStore
+              <h1 className="mt-5 text-3xl font-black">
+                Barr
+                <span className="text-orange-400">
+                  Store
+                </span>{" "}
+                Admin
               </h1>
 
               <p className="mt-2 text-sm text-slate-500">
-                Masukkan password admin untuk
-                melanjutkan.
+                Masukkan password admin untuk melanjutkan.
               </p>
             </div>
 
@@ -884,7 +797,7 @@ function Admin({ API_URL, onBack }) {
               onSubmit={handleLogin}
               className="mt-7"
             >
-              <label className="mb-2 block text-sm font-bold">
+              <label className="mb-2 block text-sm font-black">
                 Password Admin
               </label>
 
@@ -898,11 +811,11 @@ function Admin({ API_URL, onBack }) {
                   setError("");
                 }}
                 placeholder="Masukkan password"
-                className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 outline-none transition focus:border-cyan-400"
+                className="w-full rounded-xl border border-white/10 bg-[#0b0d12] px-4 py-3 outline-none transition placeholder:text-slate-600 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
               />
 
               {error && (
-                <div className="mt-3 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-sm font-bold text-red-400">
+                <div className="mt-3 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-sm font-bold text-red-300">
                   {error}
                 </div>
               )}
@@ -910,7 +823,7 @@ function Admin({ API_URL, onBack }) {
               <button
                 type="submit"
                 disabled={loading}
-                className="mt-5 w-full rounded-xl bg-cyan-400 px-5 py-3 font-black text-slate-950 transition hover:bg-cyan-300 disabled:opacity-50"
+                className="mt-5 w-full rounded-xl bg-gradient-to-r from-orange-500 to-amber-400 px-5 py-3 font-black text-black shadow-lg shadow-orange-500/10 transition hover:from-orange-400 hover:to-amber-300 disabled:opacity-50"
               >
                 {loading
                   ? "⏳ Memeriksa..."
@@ -920,51 +833,51 @@ function Admin({ API_URL, onBack }) {
 
             <button
               onClick={onBack}
-              className="mt-3 w-full rounded-xl border border-slate-700 px-5 py-3 font-bold text-slate-300 transition hover:border-slate-500"
+              className="mt-3 w-full rounded-xl border border-white/10 px-5 py-3 font-bold text-slate-300 transition hover:border-orange-500/40 hover:text-orange-300"
             >
-              ← Kembali
+              ← Kembali ke Toko
             </button>
-
           </div>
         </div>
       </div>
     );
   }
 
-  // =========================
-  // ADMIN DASHBOARD
-  // =========================
-
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
-
+    <div className="min-h-screen bg-[#0b0d12] text-white">
       {/* HEADER */}
 
-      <header className="sticky top-0 z-30 border-b border-slate-800 bg-slate-950/95 backdrop-blur">
+      <header className="sticky top-0 z-30 border-b border-white/10 bg-[#0b0d12]/95 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4">
+          <div className="flex items-center gap-3">
+            <div className="hidden h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 via-orange-400 to-amber-300 shadow-lg shadow-orange-500/10 sm:flex">
+              <span className="text-sm font-black text-black">
+                BS
+              </span>
+            </div>
 
-          <div>
-            <h1 className="text-2xl font-black">
-              Barr
-              <span className="text-cyan-400">
-                Store
-              </span>{" "}
-              Admin
-            </h1>
+            <div>
+              <h1 className="text-2xl font-black">
+                Barr
+                <span className="text-orange-400">
+                  Store
+                </span>{" "}
+                Admin
+              </h1>
 
-            <p className="text-xs text-slate-500">
-              Dashboard & pengelolaan toko
-            </p>
+              <p className="text-xs text-slate-500">
+                Dashboard & pengelolaan toko
+              </p>
+            </div>
           </div>
 
           <div className="flex gap-2">
-
             <button
               onClick={() =>
                 refreshData(false)
               }
               disabled={loading}
-              className="rounded-xl border border-slate-700 px-4 py-2 text-sm font-bold transition hover:border-cyan-400 hover:text-cyan-400 disabled:opacity-50"
+              className="rounded-xl border border-white/10 bg-[#151820] px-4 py-2 text-sm font-bold transition hover:border-orange-500/40 hover:text-orange-300 disabled:opacity-50"
             >
               {loading
                 ? "⏳"
@@ -974,31 +887,32 @@ function Admin({ API_URL, onBack }) {
 
             <button
               onClick={onBack}
-              className="hidden rounded-xl border border-slate-700 px-4 py-2 text-sm font-bold transition hover:border-cyan-400 hover:text-cyan-400 sm:block"
+              className="hidden rounded-xl border border-white/10 bg-[#151820] px-4 py-2 text-sm font-bold transition hover:border-orange-500/40 hover:text-orange-300 sm:block"
             >
               ← Toko
             </button>
 
             <button
               onClick={logout}
-              className="rounded-xl bg-red-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-red-400"
+              className="rounded-xl bg-red-500/90 px-4 py-2 text-sm font-bold text-white transition hover:bg-red-400"
             >
               Logout
             </button>
-
           </div>
         </div>
       </header>
 
       <main className="mx-auto max-w-7xl px-4 py-8">
-
-        {/* DASHBOARD TITLE */}
+        {/* TITLE */}
 
         <section className="mb-8">
-
           <div className="mb-6">
-            <h2 className="text-3xl font-black">
-              📊 Dashboard
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-orange-400">
+              Overview
+            </p>
+
+            <h2 className="mt-1 text-3xl font-black">
+              Dashboard
             </h2>
 
             <p className="mt-1 text-sm text-slate-500">
@@ -1009,19 +923,18 @@ function Admin({ API_URL, onBack }) {
           {/* MAIN STATS */}
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-
             <StatCard
               title="Total Pesanan"
               value={stats.totalOrders}
               icon="📦"
-              textClass="text-cyan-400"
+              textClass="text-orange-300"
             />
 
             <StatCard
               title="Total Pelanggan"
               value={stats.totalUsers}
               icon="👥"
-              textClass="text-purple-400"
+              textClass="text-blue-300"
             />
 
             <StatCard
@@ -1030,7 +943,7 @@ function Admin({ API_URL, onBack }) {
                 stats.totalOmzet
               )}
               icon="💰"
-              textClass="text-green-400"
+              textClass="text-emerald-400"
               small
             />
 
@@ -1040,57 +953,55 @@ function Admin({ API_URL, onBack }) {
                 dashboardData.omzetHariIni
               )}
               icon="📈"
-              textClass="text-amber-400"
+              textClass="text-amber-300"
               small
             />
-
           </div>
 
           {/* STATUS */}
 
           <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-
             <MiniStat
               title="Pending"
               value={stats.pending}
               icon="⏳"
-              className="border-yellow-500/20 bg-yellow-500/5 text-yellow-400"
+              className="border-amber-500/20 bg-amber-500/5 text-amber-300"
             />
 
             <MiniStat
               title="Diproses"
               value={stats.diproses}
               icon="🔄"
-              className="border-blue-500/20 bg-blue-500/5 text-blue-400"
+              className="border-blue-500/20 bg-blue-500/5 text-blue-300"
             />
 
             <MiniStat
               title="Selesai"
               value={stats.selesai}
               icon="✅"
-              className="border-green-500/20 bg-green-500/5 text-green-400"
+              className="border-emerald-500/20 bg-emerald-500/5 text-emerald-300"
             />
 
             <MiniStat
               title="Dibatalkan"
               value={stats.dibatalkan}
               icon="❌"
-              className="border-red-500/20 bg-red-500/5 text-red-400"
+              className="border-red-500/20 bg-red-500/5 text-red-300"
             />
-
           </div>
-
         </section>
 
-        {/* SVG SALES CHART */}
+        {/* CHART */}
 
-        <section className="mb-8 rounded-3xl border border-slate-800 bg-slate-900 p-5">
-
+        <section className="mb-8 rounded-3xl border border-white/10 bg-[#151820] p-5">
           <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-
             <div>
-              <h2 className="text-xl font-black">
-                📈 Grafik Omzet
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-orange-400">
+                Analytics
+              </p>
+
+              <h2 className="mt-1 text-xl font-black">
+                Grafik Omzet
               </h2>
 
               <p className="text-sm text-slate-500">
@@ -1098,183 +1009,48 @@ function Admin({ API_URL, onBack }) {
               </p>
             </div>
 
-            <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/5 px-3 py-2 text-xs font-bold text-cyan-400">
-              SVG LIVE DATA
+            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-xs font-black text-emerald-300">
+              ● LIVE DATA
             </div>
-
           </div>
 
           <SalesChart
             data={dashboardData.chartDays}
             formatRp={formatRp}
           />
-
         </section>
 
         {/* BEST SELLERS */}
 
         <section className="mb-8 grid gap-6 lg:grid-cols-2">
+          <RankingCard
+            title="🏆 Game Paling Laku"
+            description="Berdasarkan jumlah pesanan"
+            data={dashboardData.topGames}
+            color="orange"
+          />
 
-          {/* GAME TERLARIS */}
-
-          <div className="rounded-3xl border border-slate-800 bg-slate-900 p-5">
-
-            <div className="mb-5">
-              <h2 className="text-xl font-black">
-                🏆 Game Paling Laku
-              </h2>
-
-              <p className="mt-1 text-sm text-slate-500">
-                Berdasarkan jumlah pesanan
-              </p>
-            </div>
-
-            {dashboardData.topGames.length ===
-            0 ? (
-              <EmptySmall text="Belum ada data game." />
-            ) : (
-              <div className="space-y-4">
-                {dashboardData.topGames.map(
-                  ([game, count], index) => {
-                    const max =
-                      dashboardData.topGames[0][1];
-
-                    const percentage =
-                      max > 0
-                        ? (count / max) * 100
-                        : 0;
-
-                    return (
-                      <div key={game}>
-
-                        <div className="mb-2 flex items-center justify-between gap-3">
-
-                          <div className="flex min-w-0 items-center gap-3">
-                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-sm font-black">
-                              {index + 1}
-                            </span>
-
-                            <span className="truncate font-bold">
-                              {game}
-                            </span>
-                          </div>
-
-                          <span className="shrink-0 text-sm font-black text-cyan-400">
-                            {count} order
-                          </span>
-
-                        </div>
-
-                        <div className="h-2 overflow-hidden rounded-full bg-slate-800">
-                          <div
-                            className="h-full rounded-full bg-cyan-400 transition-all"
-                            style={{
-                              width:
-                                percentage +
-                                "%",
-                            }}
-                          />
-                        </div>
-
-                      </div>
-                    );
-                  }
-                )}
-              </div>
-            )}
-
-          </div>
-
-          {/* SERVICE TERLARIS */}
-
-          <div className="rounded-3xl border border-slate-800 bg-slate-900 p-5">
-
-            <div className="mb-5">
-              <h2 className="text-xl font-black">
-                🛒 Layanan Paling Laku
-              </h2>
-
-              <p className="mt-1 text-sm text-slate-500">
-                Top Up, Joki, Akun, dan layanan lainnya
-              </p>
-            </div>
-
-            {dashboardData.topServices.length ===
-            0 ? (
-              <EmptySmall text="Belum ada data layanan." />
-            ) : (
-              <div className="space-y-4">
-                {dashboardData.topServices.map(
-                  ([service, count], index) => {
-                    const max =
-                      dashboardData.topServices[0][1];
-
-                    const percentage =
-                      max > 0
-                        ? (count / max) * 100
-                        : 0;
-
-                    return (
-                      <div key={service}>
-
-                        <div className="mb-2 flex items-center justify-between gap-3">
-
-                          <div className="flex min-w-0 items-center gap-3">
-                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-sm font-black">
-                              {index + 1}
-                            </span>
-
-                            <span className="truncate font-bold capitalize">
-                              {service}
-                            </span>
-                          </div>
-
-                          <span className="shrink-0 text-sm font-black text-purple-400">
-                            {count} order
-                          </span>
-
-                        </div>
-
-                        <div className="h-2 overflow-hidden rounded-full bg-slate-800">
-                          <div
-                            className="h-full rounded-full bg-purple-400 transition-all"
-                            style={{
-                              width:
-                                percentage +
-                                "%",
-                            }}
-                          />
-                        </div>
-
-                      </div>
-                    );
-                  }
-                )}
-              </div>
-            )}
-
-          </div>
-
+          <RankingCard
+            title="🛒 Layanan Paling Laku"
+            description="Top Up, Joki, Akun, dan layanan lainnya"
+            data={dashboardData.topServices}
+            color="amber"
+          />
         </section>
 
-        {/* RATING + REVIEW */}
+        {/* RATING */}
 
         <section className="mb-8 grid gap-6 lg:grid-cols-3">
-
-          {/* RATING */}
-
-          <div className="rounded-3xl border border-slate-800 bg-slate-900 p-5">
-
-            <h2 className="text-xl font-black">
-              ⭐ Rating Customer
-            </h2>
-
-            <p className="mt-1 text-sm text-slate-500">
-              Berdasarkan rating yang tersimpan di pesanan
+          <div className="rounded-3xl border border-white/10 bg-[#151820] p-5">
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-orange-400">
+              Feedback
             </p>
 
-            <div className="mt-8 text-center">
+            <h2 className="mt-1 text-xl font-black">
+              Rating Customer
+            </h2>
 
+            <div className="mt-8 text-center">
               <div className="text-5xl font-black text-amber-400">
                 {dashboardData.averageRating
                   ? dashboardData.averageRating.toFixed(
@@ -1292,95 +1068,79 @@ function Admin({ API_URL, onBack }) {
               <p className="mt-3 text-sm text-slate-500">
                 {dashboardData.ratingCount} ulasan
               </p>
-
             </div>
-
           </div>
 
-          {/* REVIEW */}
+          <div className="rounded-3xl border border-white/10 bg-[#151820] p-5 lg:col-span-2">
+            <h2 className="text-xl font-black">
+              💬 Review Customer
+            </h2>
 
-          <div className="rounded-3xl border border-slate-800 bg-slate-900 p-5 lg:col-span-2">
+            <p className="mt-1 text-sm text-slate-500">
+              Review terbaru dari pelanggan
+            </p>
 
-            <div className="mb-5">
-              <h2 className="text-xl font-black">
-                💬 Review Customer
-              </h2>
+            <div className="mt-5">
+              {dashboardData.reviews.length ===
+              0 ? (
+                <EmptySmall text="Belum ada review yang tersimpan." />
+              ) : (
+                <div className="grid gap-3 md:grid-cols-2">
+                  {dashboardData.reviews.map(
+                    (review) => {
+                      const rating =
+                        Number(
+                          review.rating ??
+                            review.review_rating ??
+                            review.reviewRating ??
+                            review.stars ??
+                            0
+                        );
 
-              <p className="mt-1 text-sm text-slate-500">
-                Review terbaru dari pelanggan
-              </p>
-            </div>
+                      const text =
+                        review.review ||
+                        review.ulasan ||
+                        review.comment ||
+                        "";
 
-            {dashboardData.reviews.length ===
-            0 ? (
-              <EmptySmall text="Belum ada review yang tersimpan." />
-            ) : (
-              <div className="grid gap-3 md:grid-cols-2">
+                      return (
+                        <div
+                          key={review.id}
+                          className="rounded-2xl border border-white/10 bg-[#0b0d12] p-4"
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <p className="font-black">
+                              👤{" "}
+                              {review.username ||
+                                review.nickname ||
+                                "Customer"}
+                            </p>
 
-                {dashboardData.reviews.map(
-                  (review) => {
-                    const rating =
-                      Number(
-                        review.rating ??
-                          review.review_rating ??
-                          review.reviewRating ??
-                          review.stars ??
-                          0
-                      );
+                            <span className="text-sm text-amber-400">
+                              {renderStars(
+                                rating
+                              )}
+                            </span>
+                          </div>
 
-                    const text =
-                      review.review ||
-                      review.ulasan ||
-                      review.comment ||
-                      "";
-
-                    return (
-                      <div
-                        key={review.id}
-                        className="rounded-2xl border border-slate-800 bg-slate-950 p-4"
-                      >
-
-                        <div className="flex items-center justify-between gap-3">
-
-                          <p className="font-black">
-                            👤{" "}
-                            {review.username ||
-                              review.nickname ||
-                              "Customer"}
+                          <p className="mt-3 text-sm leading-6 text-slate-400">
+                            "{text}"
                           </p>
-
-                          <span className="text-sm text-amber-400">
-                            {renderStars(
-                              rating
-                            )}
-                          </span>
-
                         </div>
-
-                        <p className="mt-3 text-sm leading-6 text-slate-400">
-                          "{text}"
-                        </p>
-
-                      </div>
-                    );
-                  }
-                )}
-
-              </div>
-            )}
-
+                      );
+                    }
+                  )}
+                </div>
+              )}
+            </div>
           </div>
-
         </section>
 
         {/* RECENT ORDERS */}
 
-        <section className="mb-8 rounded-3xl border border-slate-800 bg-slate-900">
-
-          <div className="border-b border-slate-800 p-5">
-
+        <section className="mb-8 overflow-hidden rounded-3xl border border-white/10 bg-[#151820]">
+          <div className="border-b border-white/10 p-5">
             <div className="flex items-center justify-between gap-3">
-
               <div>
                 <h2 className="text-xl font-black">
                   📋 Pesanan Terbaru
@@ -1392,46 +1152,40 @@ function Admin({ API_URL, onBack }) {
               </div>
 
               <button
-                onClick={() => {
+                onClick={() =>
                   document
                     .getElementById(
                       "orders-section"
                     )
                     ?.scrollIntoView({
                       behavior: "smooth",
-                    });
-                }}
-                className="rounded-xl border border-slate-700 px-3 py-2 text-xs font-bold transition hover:border-cyan-400 hover:text-cyan-400"
+                    })
+                }
+                className="rounded-xl border border-white/10 px-3 py-2 text-xs font-bold transition hover:border-orange-500/40 hover:text-orange-300"
               >
                 Lihat Semua
               </button>
-
             </div>
-
           </div>
 
           {dashboardData.recentOrders.length ===
           0 ? (
             <EmptySmall text="Belum ada pesanan." />
           ) : (
-            <div className="divide-y divide-slate-800">
-
+            <div className="divide-y divide-white/10">
               {dashboardData.recentOrders.map(
                 (order) => (
                   <div
                     key={order.id}
-                    className="flex flex-col gap-3 p-4 transition hover:bg-slate-800/30 sm:flex-row sm:items-center sm:justify-between"
+                    className="flex flex-col gap-3 p-4 transition hover:bg-white/[0.02] sm:flex-row sm:items-center sm:justify-between"
                   >
-
                     <div className="min-w-0">
-
                       <div className="flex flex-wrap items-center gap-2">
-
                         <span className="font-black">
                           #{order.id}
                         </span>
 
-                        <span className="rounded-lg bg-cyan-400/10 px-2 py-1 text-xs font-bold text-cyan-400">
+                        <span className="rounded-lg bg-orange-500/10 px-2 py-1 text-xs font-bold text-orange-300">
                           {order.service ||
                             "Order"}
                         </span>
@@ -1446,7 +1200,6 @@ function Admin({ API_URL, onBack }) {
                         >
                           {order.status}
                         </span>
-
                       </div>
 
                       <p className="mt-2 truncate font-bold">
@@ -1459,14 +1212,13 @@ function Admin({ API_URL, onBack }) {
                           order.nickname ||
                           "Customer"}
                       </p>
-
                     </div>
 
                     <div className="text-left sm:text-right">
-
-                      <p className="font-black text-cyan-400">
+                      <p className="font-black text-orange-300">
                         {formatRp(
-                          order.price
+                          order.finalPrice ??
+                            order.price
                         )}
                       </p>
 
@@ -1481,66 +1233,52 @@ function Admin({ API_URL, onBack }) {
                             )
                           : "Tanggal tidak tersedia"}
                       </p>
-
                     </div>
-
                   </div>
                 )
               )}
-
             </div>
           )}
-
         </section>
 
-        {/* VOUCHER MANAGEMENT */}
+        {/* VOUCHERS */}
 
-        <section className="mb-8 overflow-hidden rounded-3xl border border-slate-800 bg-slate-900">
+        <section className="mb-8 overflow-hidden rounded-3xl border border-white/10 bg-[#151820]">
+          <div className="border-b border-white/10 p-5">
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-orange-400">
+              Promotion
+            </p>
 
-          <div className="border-b border-slate-800 p-5">
-
-            <h2 className="text-xl font-black">
+            <h2 className="mt-1 text-xl font-black">
               🎟️ Kelola Voucher
             </h2>
 
             <p className="mt-1 text-sm text-slate-500">
               Buat dan aktifkan voucher pelanggan.
             </p>
-
           </div>
 
-          {/* FORM */}
-
-          <div className="border-b border-slate-800 p-5">
-
+          <div className="border-b border-white/10 p-5">
             <form
               onSubmit={createVoucher}
               className="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
             >
+              <VoucherInput
+                label="Kode Voucher"
+                value={voucherForm.code}
+                onChange={(value) =>
+                  setVoucherForm(
+                    (prev) => ({
+                      ...prev,
+                      code: value.toUpperCase(),
+                    })
+                  )
+                }
+                placeholder="BARR10"
+              />
 
               <div>
-                <label className="mb-2 block text-sm font-bold">
-                  Kode Voucher
-                </label>
-
-                <input
-                  type="text"
-                  value={voucherForm.code}
-                  onChange={(e) =>
-                    setVoucherForm(
-                      (prev) => ({
-                        ...prev,
-                        code: e.target.value.toUpperCase(),
-                      })
-                    )
-                  }
-                  placeholder="Contoh: BARR10"
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 font-bold uppercase outline-none focus:border-cyan-400"
-                />
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-bold">
+                <label className="mb-2 block text-sm font-black">
                   Jenis Diskon
                 </label>
 
@@ -1554,77 +1292,55 @@ function Admin({ API_URL, onBack }) {
                       })
                     )
                   }
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 font-bold outline-none focus:border-cyan-400"
+                  className="w-full rounded-xl border border-white/10 bg-[#0b0d12] px-4 py-3 font-bold outline-none focus:border-orange-500"
                 >
                   <option value="nominal">
-                    💰 Potongan Nominal
+                    Potongan Nominal
                   </option>
 
                   <option value="percent">
-                    📊 Persentase
+                    Persentase
                   </option>
                 </select>
               </div>
 
-              <div>
-                <label className="mb-2 block text-sm font-bold">
-                  Nilai Diskon
-                </label>
-
-                <input
-                  type="number"
-                  min="1"
-                  value={voucherForm.value}
-                  onChange={(e) =>
-                    setVoucherForm(
-                      (prev) => ({
-                        ...prev,
-                        value: e.target.value,
-                      })
-                    )
-                  }
-                  placeholder={
-                    voucherForm.type ===
-                    "percent"
-                      ? "Contoh: 10"
-                      : "Contoh: 10000"
-                  }
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 outline-none focus:border-cyan-400"
-                />
-
-                <p className="mt-1 text-xs text-slate-500">
-                  {voucherForm.type ===
+              <VoucherInput
+                label="Nilai Diskon"
+                type="number"
+                value={voucherForm.value}
+                onChange={(value) =>
+                  setVoucherForm(
+                    (prev) => ({
+                      ...prev,
+                      value,
+                    })
+                  )
+                }
+                placeholder={
+                  voucherForm.type ===
                   "percent"
-                    ? "10 = diskon 10%"
-                    : "10000 = potongan Rp10.000"}
-                </p>
-              </div>
+                    ? "10"
+                    : "10000"
+                }
+              />
+
+              <VoucherInput
+                label="Maksimal Penggunaan"
+                type="number"
+                value={voucherForm.maxUses}
+                onChange={(value) =>
+                  setVoucherForm(
+                    (prev) => ({
+                      ...prev,
+                      maxUses: value,
+                    })
+                  )
+                }
+                placeholder="Unlimited jika kosong"
+              />
 
               <div>
-                <label className="mb-2 block text-sm font-bold">
-                  Maksimal Penggunaan
-                </label>
-
-                <input
-                  type="number"
-                  min="1"
-                  value={voucherForm.maxUses}
-                  onChange={(e) =>
-                    setVoucherForm(
-                      (prev) => ({
-                        ...prev,
-                        maxUses:
-                          e.target.value,
-                      })
-                    )
-                  }
-                  placeholder="Kosongkan jika unlimited"
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 outline-none focus:border-cyan-400"
-                />
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-bold">
+                <label className="mb-2 block text-sm font-black">
                   Tanggal Expired
                 </label>
 
@@ -1642,46 +1358,33 @@ function Admin({ API_URL, onBack }) {
                       })
                     )
                   }
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm outline-none focus:border-cyan-400"
+                  className="w-full rounded-xl border border-white/10 bg-[#0b0d12] px-4 py-3 text-sm outline-none focus:border-orange-500"
                 />
-
-                <p className="mt-1 text-xs text-slate-500">
-                  Kosongkan jika tidak expired.
-                </p>
               </div>
 
               <div className="flex items-end">
-
                 <button
                   type="submit"
                   disabled={voucherLoading}
-                  className="w-full rounded-xl bg-cyan-400 px-5 py-3 font-black text-slate-950 transition hover:bg-cyan-300 disabled:opacity-50"
+                  className="w-full rounded-xl bg-gradient-to-r from-orange-500 to-amber-400 px-5 py-3 font-black text-black transition hover:from-orange-400 hover:to-amber-300 disabled:opacity-50"
                 >
                   {voucherLoading
-                    ? "⏳ Membuat..."
+                    ? "Membuat..."
                     : "🎟️ Buat Voucher"}
                 </button>
-
               </div>
-
             </form>
-
           </div>
 
-          {/* LIST VOUCHER */}
-
           <div className="p-5">
-
             <div className="mb-4 flex items-center justify-between">
-
               <div>
                 <h3 className="font-black">
                   📋 Daftar Voucher
                 </h3>
 
                 <p className="mt-1 text-xs text-slate-500">
-                  {vouchers.length} voucher
-                  tersedia.
+                  {vouchers.length} voucher tersedia.
                 </p>
               </div>
 
@@ -1689,32 +1392,26 @@ function Admin({ API_URL, onBack }) {
                 onClick={() =>
                   loadVouchers(adminKey)
                 }
-                className="rounded-lg border border-slate-700 px-3 py-2 text-xs font-bold transition hover:border-cyan-400 hover:text-cyan-400"
+                className="rounded-lg border border-white/10 px-3 py-2 text-xs font-bold transition hover:border-orange-500/40 hover:text-orange-300"
               >
-                🔄 Refresh Voucher
+                🔄 Refresh
               </button>
-
             </div>
 
             {vouchers.length === 0 ? (
               <EmptySmall text="Belum ada voucher." />
             ) : (
               <div className="grid gap-4 md:grid-cols-2">
-
                 {vouchers.map(
                   (voucher) => (
                     <div
                       key={voucher.id}
-                      className="rounded-2xl border border-slate-800 bg-slate-950 p-5"
+                      className="rounded-2xl border border-white/10 bg-[#0b0d12] p-5"
                     >
-
                       <div className="flex items-start justify-between gap-4">
-
                         <div>
-
                           <div className="flex flex-wrap items-center gap-2">
-
-                            <span className="rounded-lg bg-cyan-400/10 px-3 py-1 font-black tracking-wider text-cyan-400">
+                            <span className="rounded-lg bg-orange-500/10 px-3 py-1 font-black tracking-wider text-orange-300">
                               {voucher.code}
                             </span>
 
@@ -1723,8 +1420,8 @@ function Admin({ API_URL, onBack }) {
                                 Number(
                                   voucher.active
                                 ) === 1
-                                  ? "rounded-lg border border-green-500/20 bg-green-500/10 px-2 py-1 text-xs font-bold text-green-400"
-                                  : "rounded-lg border border-red-500/20 bg-red-500/10 px-2 py-1 text-xs font-bold text-red-400"
+                                  ? "rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-xs font-bold text-emerald-300"
+                                  : "rounded-lg border border-red-500/20 bg-red-500/10 px-2 py-1 text-xs font-bold text-red-300"
                               }
                             >
                               {Number(
@@ -1733,7 +1430,6 @@ function Admin({ API_URL, onBack }) {
                                 ? "AKTIF"
                                 : "NONAKTIF"}
                             </span>
-
                           </div>
 
                           <p className="mt-4 text-2xl font-black">
@@ -1769,7 +1465,6 @@ function Admin({ API_URL, onBack }) {
                               voucher.expires_at
                             )}
                           </p>
-
                         </div>
 
                         <button
@@ -1782,41 +1477,33 @@ function Admin({ API_URL, onBack }) {
                             Number(
                               voucher.active
                             ) === 1
-                              ? "rounded-xl border border-red-500/30 px-3 py-2 text-xs font-black text-red-400 transition hover:bg-red-500/10"
-                              : "rounded-xl border border-green-500/30 px-3 py-2 text-xs font-black text-green-400 transition hover:bg-green-500/10"
+                              ? "rounded-xl border border-red-500/30 px-3 py-2 text-xs font-black text-red-300 transition hover:bg-red-500/10"
+                              : "rounded-xl border border-emerald-500/30 px-3 py-2 text-xs font-black text-emerald-300 transition hover:bg-emerald-500/10"
                           }
                         >
                           {Number(
                             voucher.active
                           ) === 1
-                            ? "🔴 Matikan"
-                            : "🟢 Aktifkan"}
+                            ? "Matikan"
+                            : "Aktifkan"}
                         </button>
-
                       </div>
-
                     </div>
                   )
                 )}
-
               </div>
             )}
-
           </div>
-
         </section>
 
         {/* ALL ORDERS */}
 
         <section
           id="orders-section"
-          className="overflow-hidden rounded-3xl border border-slate-800 bg-slate-900"
+          className="overflow-hidden rounded-3xl border border-white/10 bg-[#151820]"
         >
-
-          <div className="border-b border-slate-800 p-5">
-
+          <div className="border-b border-white/10 p-5">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-
               <div>
                 <h2 className="text-xl font-black">
                   📦 Daftar Pesanan
@@ -1830,7 +1517,6 @@ function Admin({ API_URL, onBack }) {
               </div>
 
               <div className="flex flex-col gap-2 sm:flex-row">
-
                 <input
                   type="text"
                   value={search}
@@ -1840,7 +1526,7 @@ function Admin({ API_URL, onBack }) {
                     )
                   }
                   placeholder="🔎 Cari pesanan..."
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm outline-none focus:border-cyan-400 sm:w-72"
+                  className="w-full rounded-xl border border-white/10 bg-[#0b0d12] px-4 py-3 text-sm outline-none placeholder:text-slate-600 focus:border-orange-500 sm:w-72"
                 />
 
                 <select
@@ -1850,7 +1536,7 @@ function Admin({ API_URL, onBack }) {
                       e.target.value
                     )
                   }
-                  className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm font-bold outline-none focus:border-cyan-400"
+                  className="rounded-xl border border-white/10 bg-[#0b0d12] px-4 py-3 text-sm font-bold outline-none focus:border-orange-500"
                 >
                   <option value="semua">
                     Semua Status
@@ -1872,21 +1558,17 @@ function Admin({ API_URL, onBack }) {
                     Dibatalkan
                   </option>
                 </select>
-
               </div>
-
             </div>
-
           </div>
 
           {filteredOrders.length === 0 ? (
             <div className="p-12 text-center">
-
               <div className="text-5xl">
                 📭
               </div>
 
-              <p className="mt-4 font-bold text-slate-400">
+              <p className="mt-4 font-bold text-slate-500">
                 {orders.length === 0
                   ? "Belum ada pesanan."
                   : "Pesanan tidak ditemukan."}
@@ -1900,34 +1582,28 @@ function Admin({ API_URL, onBack }) {
                       "semua"
                     );
                   }}
-                  className="mt-4 rounded-xl border border-slate-700 px-4 py-2 text-sm font-bold transition hover:border-cyan-400 hover:text-cyan-400"
+                  className="mt-4 rounded-xl border border-white/10 px-4 py-2 text-sm font-bold transition hover:border-orange-500/40 hover:text-orange-300"
                 >
                   Reset Filter
                 </button>
               )}
-
             </div>
           ) : (
-            <div className="divide-y divide-slate-800">
-
+            <div className="divide-y divide-white/10">
               {filteredOrders.map(
                 (order) => (
                   <div
                     key={order.id}
-                    className="p-5 transition hover:bg-slate-800/30"
+                    className="p-5 transition hover:bg-white/[0.02]"
                   >
-
                     <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-
                       <div className="min-w-0">
-
                         <div className="flex flex-wrap items-center gap-2">
-
                           <span className="text-lg font-black">
                             #{order.id}
                           </span>
 
-                          <span className="rounded-lg bg-cyan-400/10 px-2 py-1 text-xs font-bold text-cyan-400">
+                          <span className="rounded-lg bg-orange-500/10 px-2 py-1 text-xs font-bold text-orange-300">
                             {order.service ||
                               "Order"}
                           </span>
@@ -1942,15 +1618,16 @@ function Admin({ API_URL, onBack }) {
                           >
                             {order.status}
                           </span>
-
                         </div>
 
                         <p className="mt-3 text-lg font-black">
-                          {order.game}
+                          {order.game ||
+                            "Layanan BarrStore"}
                         </p>
 
                         <p className="mt-1 text-sm text-slate-400">
                           {order.nominal ||
+                            order.rank ||
                             "-"}
                         </p>
 
@@ -1958,8 +1635,7 @@ function Admin({ API_URL, onBack }) {
                           order.discount || 0
                         ) > 0 && (
                           <div className="mt-2 text-sm">
-
-                            <span className="text-slate-500 line-through">
+                            <span className="text-slate-600 line-through">
                               {formatRp(
                                 Number(
                                   order.price ||
@@ -1972,24 +1648,24 @@ function Admin({ API_URL, onBack }) {
                               )}
                             </span>
 
-                            <span className="ml-2 font-bold text-green-400">
+                            <span className="ml-2 font-bold text-emerald-400">
                               🎟️ Diskon{" "}
                               {formatRp(
                                 order.discount
                               )}
                             </span>
-
                           </div>
                         )}
 
-                        <p className="mt-2 text-xl font-black text-cyan-400">
+                        <p className="mt-2 text-xl font-black text-orange-300">
                           {formatRp(
-                            order.price
+                            order.finalPrice ??
+                              order.price
                           )}
                         </p>
 
                         {order.voucher_code && (
-                          <p className="mt-1 text-xs font-bold text-purple-400">
+                          <p className="mt-1 text-xs font-bold text-orange-300">
                             🎟️ Voucher:{" "}
                             {
                               order.voucher_code
@@ -1998,7 +1674,7 @@ function Admin({ API_URL, onBack }) {
                         )}
 
                         {order.username && (
-                          <p className="mt-2 text-sm text-purple-400">
+                          <p className="mt-2 text-sm text-orange-300">
                             👤 Customer:{" "}
                             <span className="font-bold">
                               {
@@ -2007,11 +1683,9 @@ function Admin({ API_URL, onBack }) {
                             </span>
                           </p>
                         )}
-
                       </div>
 
-                      <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4 text-sm xl:min-w-[300px]">
-
+                      <div className="rounded-2xl border border-white/10 bg-[#0b0d12] p-4 text-sm xl:min-w-[300px]">
                         <p className="font-black">
                           👤{" "}
                           {order.nickname ||
@@ -2030,7 +1704,7 @@ function Admin({ API_URL, onBack }) {
                             "-"}
                         </p>
 
-                        <p className="mt-2 font-bold text-green-400">
+                        <p className="mt-2 font-bold text-emerald-400">
                           📱 WA:{" "}
                           {order.whatsapp ||
                             "-"}
@@ -2048,66 +1722,59 @@ function Admin({ API_URL, onBack }) {
                             )}
                           </p>
                         )}
-
                       </div>
-
                     </div>
 
                     {order.note && (
-                      <div className="mt-4 rounded-xl border border-slate-800 bg-slate-950 p-3 text-sm text-slate-400">
+                      <div className="mt-4 rounded-xl border border-white/10 bg-[#0b0d12] p-3 text-sm text-slate-400">
                         📝 {order.note}
                       </div>
                     )}
 
                     <div className="mt-5 flex flex-wrap gap-2">
-
-                      <button
+                      <StatusButton
+                        text="⏳ Pending"
+                        color="amber"
                         onClick={() =>
                           updateStatus(
                             order.id,
                             "pending"
                           )
                         }
-                        className="rounded-lg border border-yellow-500/30 px-3 py-2 text-xs font-bold text-yellow-400 transition hover:bg-yellow-500/10"
-                      >
-                        ⏳ Pending
-                      </button>
+                      />
 
-                      <button
+                      <StatusButton
+                        text="🔄 Diproses"
+                        color="blue"
                         onClick={() =>
                           updateStatus(
                             order.id,
                             "diproses"
                           )
                         }
-                        className="rounded-lg border border-blue-500/30 px-3 py-2 text-xs font-bold text-blue-400 transition hover:bg-blue-500/10"
-                      >
-                        🔄 Diproses
-                      </button>
+                      />
 
-                      <button
+                      <StatusButton
+                        text="✅ Selesai"
+                        color="emerald"
                         onClick={() =>
                           updateStatus(
                             order.id,
                             "selesai"
                           )
                         }
-                        className="rounded-lg border border-green-500/30 px-3 py-2 text-xs font-bold text-green-400 transition hover:bg-green-500/10"
-                      >
-                        ✅ Selesai
-                      </button>
+                      />
 
-                      <button
+                      <StatusButton
+                        text="❌ Batalkan"
+                        color="red"
                         onClick={() =>
                           updateStatus(
                             order.id,
                             "dibatalkan"
                           )
                         }
-                        className="rounded-lg border border-red-500/30 px-3 py-2 text-xs font-bold text-red-400 transition hover:bg-red-500/10"
-                      >
-                        ❌ Batalkan
-                      </button>
+                      />
 
                       {order.whatsapp && (
                         <a
@@ -2125,32 +1792,26 @@ function Admin({ API_URL, onBack }) {
                           }
                           target="_blank"
                           rel="noreferrer"
-                          className="rounded-lg bg-green-500 px-3 py-2 text-xs font-black text-white transition hover:bg-green-400"
+                          className="rounded-lg bg-emerald-500 px-3 py-2 text-xs font-black text-white transition hover:bg-emerald-400"
                         >
                           💬 Chat WhatsApp
                         </a>
                       )}
-
                     </div>
-
                   </div>
                 )
               )}
-
             </div>
           )}
-
         </section>
-
       </main>
-
     </div>
   );
 }
 
-// =====================================================
-// STAT CARD
-// =====================================================
+/* =====================================================
+   COMPONENTS
+===================================================== */
 
 function StatCard({
   title,
@@ -2160,10 +1821,8 @@ function StatCard({
   small = false,
 }) {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-
+    <div className="rounded-2xl border border-white/10 bg-[#151820] p-5 transition hover:border-orange-500/30 hover:shadow-lg hover:shadow-orange-500/5">
       <div className="flex items-center justify-between">
-
         <p className="text-sm font-bold text-slate-500">
           {title}
         </p>
@@ -2171,7 +1830,6 @@ function StatCard({
         <span className="text-2xl">
           {icon}
         </span>
-
       </div>
 
       <p
@@ -2186,14 +1844,9 @@ function StatCard({
       >
         {value}
       </p>
-
     </div>
   );
 }
-
-// =====================================================
-// MINI STAT
-// =====================================================
 
 function MiniStat({
   title,
@@ -2219,14 +1872,98 @@ function MiniStat({
   );
 }
 
-// =====================================================
-// EMPTY
-// =====================================================
+function RankingCard({
+  title,
+  description,
+  data,
+  color,
+}) {
+  const accent =
+    color === "blue"
+      ? "text-blue-300"
+      : color === "amber"
+      ? "text-amber-300"
+      : "text-orange-300";
+
+  const bar =
+    color === "blue"
+      ? "bg-blue-500"
+      : color === "amber"
+      ? "bg-amber-500"
+      : "bg-orange-500";
+
+  return (
+    <div className="rounded-3xl border border-white/10 bg-[#151820] p-5">
+      <h2 className="text-xl font-black">
+        {title}
+      </h2>
+
+      <p className="mt-1 text-sm text-slate-500">
+        {description}
+      </p>
+
+      <div className="mt-6 space-y-5">
+        {data.length === 0 ? (
+          <EmptySmall text="Belum ada data." />
+        ) : (
+          data.map(
+            ([name, count], index) => {
+              const max = data[0][1];
+
+              const percentage =
+                max > 0
+                  ? (count / max) * 100
+                  : 0;
+
+              return (
+                <div key={name}>
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#0b0d12] text-sm font-black">
+                        {index + 1}
+                      </span>
+
+                      <span className="truncate font-bold">
+                        {name}
+                      </span>
+                    </div>
+
+                    <span
+                      className={
+                        "shrink-0 text-sm font-black " +
+                        accent
+                      }
+                    >
+                      {count} order
+                    </span>
+                  </div>
+
+                  <div className="h-2 overflow-hidden rounded-full bg-[#0b0d12]">
+                    <div
+                      className={
+                        "h-full rounded-full transition-all " +
+                        bar
+                      }
+                      style={{
+                        width:
+                          percentage +
+                          "%",
+                      }}
+                    />
+                  </div>
+                </div>
+              );
+            }
+          )
+        )}
+      </div>
+    </div>
+  );
+}
 
 function EmptySmall({ text }) {
   return (
-    <div className="rounded-2xl border border-dashed border-slate-700 bg-slate-950 p-8 text-center">
-
+    <div className="rounded-2xl border border-dashed border-white/10 bg-[#0b0d12] p-8 text-center">
       <div className="text-4xl">
         📭
       </div>
@@ -2234,14 +1971,64 @@ function EmptySmall({ text }) {
       <p className="mt-3 text-sm font-bold text-slate-500">
         {text}
       </p>
-
     </div>
   );
 }
 
-// =====================================================
-// SVG SALES CHART
-// =====================================================
+function VoucherInput({
+  label,
+  value,
+  onChange,
+  placeholder,
+  type = "text",
+}) {
+  return (
+    <div>
+      <label className="mb-2 block text-sm font-black">
+        {label}
+      </label>
+
+      <input
+        type={type}
+        value={value}
+        onChange={(e) =>
+          onChange(e.target.value)
+        }
+        placeholder={placeholder}
+        className="w-full rounded-xl border border-white/10 bg-[#0b0d12] px-4 py-3 outline-none placeholder:text-slate-600 focus:border-orange-500"
+      />
+    </div>
+  );
+}
+
+function StatusButton({
+  text,
+  color,
+  onClick,
+}) {
+  const classes = {
+    amber:
+      "border-amber-500/30 text-amber-300 hover:bg-amber-500/10",
+    blue:
+      "border-blue-500/30 text-blue-300 hover:bg-blue-500/10",
+    emerald:
+      "border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/10",
+    red:
+      "border-red-500/30 text-red-300 hover:bg-red-500/10",
+  };
+
+  return (
+    <button
+      onClick={onClick}
+      className={
+        "rounded-lg border px-3 py-2 text-xs font-bold transition " +
+        classes[color]
+      }
+    >
+      {text}
+    </button>
+  );
+}
 
 function SalesChart({
   data,
@@ -2297,9 +2084,6 @@ function SalesChart({
     }
   );
 
-  // FIX: dibuat tanpa nested template literal
-  // supaya Vite tidak error saat parsing JSX.
-
   const linePath = points
     .map((point, index) => {
       const command =
@@ -2341,18 +2125,18 @@ function SalesChart({
 
   return (
     <div className="w-full overflow-x-auto">
-
       <div className="min-w-[700px]">
-
         <svg
-          viewBox={`0 0 ${width} ${height}`}
+          viewBox={
+            "0 0 " +
+            width +
+            " " +
+            height
+          }
           className="h-auto w-full"
           role="img"
           aria-label="Grafik omzet 7 hari"
         >
-
-          {/* GRID */}
-
           {gridValues.map(
             (value, index) => {
               const y =
@@ -2362,7 +2146,6 @@ function SalesChart({
 
               return (
                 <g key={index}>
-
                   <line
                     x1={paddingLeft}
                     x2={
@@ -2377,7 +2160,9 @@ function SalesChart({
                   />
 
                   <text
-                    x={paddingLeft - 10}
+                    x={
+                      paddingLeft - 10
+                    }
                     y={y + 4}
                     textAnchor="end"
                     className="fill-slate-500 text-[11px]"
@@ -2386,24 +2171,19 @@ function SalesChart({
                       value
                     )}
                   </text>
-
                 </g>
               );
             }
           )}
 
-          {/* AREA */}
-
           {areaPath && (
             <path
               d={areaPath}
               fill="currentColor"
-              fillOpacity="0.06"
-              className="text-cyan-400"
+              fillOpacity="0.05"
+              className="text-orange-500"
             />
           )}
-
-          {/* LINE */}
 
           {linePath && (
             <path
@@ -2413,21 +2193,18 @@ function SalesChart({
               strokeWidth="4"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="text-cyan-400"
+              className="text-orange-500"
             />
           )}
-
-          {/* POINTS */}
 
           {points.map(
             (point, index) => (
               <g key={index}>
-
                 <circle
                   cx={point.x}
                   cy={point.y}
                   r="7"
-                  className="fill-slate-900 stroke-cyan-400"
+                  className="fill-[#151820] stroke-orange-500"
                   strokeWidth="3"
                 />
 
@@ -2435,14 +2212,12 @@ function SalesChart({
                   cx={point.x}
                   cy={point.y}
                   r="3"
-                  className="fill-cyan-400"
+                  className="fill-amber-400"
                 />
 
                 <text
                   x={point.x}
-                  y={
-                    point.y - 15
-                  }
+                  y={point.y - 15}
                   textAnchor="middle"
                   className="fill-slate-300 text-[10px] font-bold"
                 >
@@ -2453,9 +2228,7 @@ function SalesChart({
 
                 <text
                   x={point.x}
-                  y={
-                    height - 25
-                  }
+                  y={height - 25}
                   textAnchor="middle"
                   className="fill-slate-500 text-[11px] font-bold"
                 >
@@ -2464,38 +2237,32 @@ function SalesChart({
 
                 <text
                   x={point.x}
-                  y={
-                    height - 10
-                  }
+                  y={height - 10}
                   textAnchor="middle"
                   className="fill-slate-700 text-[9px]"
                 >
                   {point.shortDate}
                 </text>
-
               </g>
             )
           )}
-
         </svg>
-
       </div>
-
     </div>
   );
 }
 
-// =====================================================
-// COMPACT RP
-// =====================================================
-
 function formatCompactRp(value) {
-  const number = Number(value || 0);
+  const number = Number(
+    value || 0
+  );
 
   if (number >= 1000000000) {
     return (
       "Rp " +
-      (number / 1000000000).toFixed(1) +
+      (number / 1000000000).toFixed(
+        1
+      ) +
       "M"
     );
   }
@@ -2503,7 +2270,9 @@ function formatCompactRp(value) {
   if (number >= 1000000) {
     return (
       "Rp " +
-      (number / 1000000).toFixed(1) +
+      (number / 1000000).toFixed(
+        1
+      ) +
       "jt"
     );
   }
@@ -2511,17 +2280,15 @@ function formatCompactRp(value) {
   if (number >= 1000) {
     return (
       "Rp " +
-      (number / 1000).toFixed(0) +
+      (number / 1000).toFixed(
+        0
+      ) +
       "rb"
     );
   }
 
   return "Rp " + number;
 }
-
-// =====================================================
-// STARS
-// =====================================================
 
 function renderStars(rating) {
   const rounded = Math.round(
@@ -2530,7 +2297,9 @@ function renderStars(rating) {
 
   return [1, 2, 3, 4, 5]
     .map((star) =>
-      star <= rounded ? "★" : "☆"
+      star <= rounded
+        ? "★"
+        : "☆"
     )
     .join("");
 }
