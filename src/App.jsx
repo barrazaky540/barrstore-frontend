@@ -1,4 +1,3 @@
-
 import { useEffect, useMemo, useState } from "react";
 import {
   GAMES,
@@ -115,22 +114,23 @@ function App() {
       ? NOMINALS[selectedGame]
       : [];
 
+  /*
+   * JOKI:
+   * Hanya game yang memang ada di JOKI_GAMES
+   * yang dianggap tersedia untuk layanan joki.
+   */
   const currentJokiGame =
     safeJokiGames.find(
       (game) => game && game.id === selectedGame
-    ) ||
-    safeJokiGames[0] ||
-    {
-      id: selectedGame,
-      name: currentGame.name || selectedGame,
-      ranks: [],
-    };
+    ) || null;
 
   const currentRanks = Array.isArray(
-    currentJokiGame.ranks
+    currentJokiGame?.ranks
   )
     ? currentJokiGame.ranks
     : [];
+
+  const isJokiAvailable = !!currentJokiGame;
 
   const selectedNominal = currentNominals.find(
     (item) => item && item.label === topupForm.nominal
@@ -342,6 +342,17 @@ function App() {
 
     return undefined;
   }, [showOrders, user]);
+
+  /*
+   * Kalau sedang Joki lalu pindah ke game
+   * yang tidak menyediakan Joki, otomatis kembali
+   * ke Top Up.
+   */
+  useEffect(() => {
+    if (service === "joki" && !isJokiAvailable) {
+      setService("topup");
+    }
+  }, [service, isJokiAvailable]);
 
   useEffect(() => {
     setDiscount(0);
@@ -728,6 +739,20 @@ function App() {
   async function submitOrder() {
     if (!requireLogin()) return;
 
+    /*
+     * Pengaman:
+     * Game yang tidak masuk JOKI_GAMES
+     * tidak boleh membuat order Joki.
+     */
+    if (service === "joki" && !isJokiAvailable) {
+      showMessage(
+        "Game ini tidak tersedia untuk layanan joki.",
+        "error"
+      );
+      setService("topup");
+      return;
+    }
+
     if (!basePrice) {
       showMessage(
         "Silakan pilih produk terlebih dahulu.",
@@ -799,6 +824,14 @@ function App() {
     }
 
     if (service === "joki") {
+      if (!currentJokiGame) {
+        showMessage(
+          "Game ini tidak tersedia untuk layanan joki.",
+          "error"
+        );
+        return;
+      }
+
       if (
         !jokiForm.currentRank ||
         !jokiForm.targetRank
@@ -1379,6 +1412,17 @@ function App() {
                 const active =
                   selectedGame === game.id;
 
+                /*
+                 * Cek apakah game ini ada
+                 * di daftar JOKI_GAMES.
+                 */
+                const canJoki =
+                  safeJokiGames.some(
+                    (jokiGame) =>
+                      jokiGame &&
+                      jokiGame.id === game.id
+                  );
+
                 const imageSrc = game?.image
                   ? game.image
                   : "/images/games/" +
@@ -1418,6 +1462,20 @@ function App() {
                       <p className="line-clamp-2 text-xs font-black leading-5 text-slate-100">
                         {game.name || "Game"}
                       </p>
+
+                      <div className="mt-2">
+
+                        {canJoki ? (
+                          <span className="inline-flex rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[9px] font-black uppercase tracking-wide text-emerald-400">
+                            🏆 Bisa Joki
+                          </span>
+                        ) : (
+                          <span className="inline-flex rounded-md border border-white/10 bg-white/5 px-2 py-1 text-[9px] font-black uppercase tracking-wide text-slate-500">
+                            ✕ Tidak Bisa Joki
+                          </span>
+                        )}
+
+                      </div>
 
                       {active && (
                         <p className="mt-2 text-[10px] font-black uppercase tracking-wider text-orange-400">
@@ -1485,33 +1543,78 @@ function App() {
                   className="mt-6 grid grid-cols-3 gap-2 rounded-2xl border border-white/10 bg-[#0f1218] p-1.5"
                 >
 
-                  {[
-                    ["topup", "💎", "Top Up"],
-                    ["joki", "🏆", "Joki"],
-                    ["akun", "🎮", "Akun"],
-                  ].map(
-                    ([id, icon, title]) => (
-                      <button
-                        key={id}
-                        onClick={() =>
-                          setService(id)
-                        }
-                        className={
-                          "rounded-xl px-3 py-3 text-sm font-black transition " +
-                          (service === id
-                            ? "bg-gradient-to-r from-orange-500 to-orange-400 text-white shadow-lg shadow-orange-500/20"
-                            : "text-slate-400 hover:bg-white/5 hover:text-orange-400")
-                        }
-                      >
-                        <span className="mr-1">
-                          {icon}
-                        </span>
-                        {title}
-                      </button>
-                    )
-                  )}
+                  <button
+                    onClick={() =>
+                      setService("topup")
+                    }
+                    className={
+                      "rounded-xl px-3 py-3 text-sm font-black transition " +
+                      (service === "topup"
+                        ? "bg-gradient-to-r from-orange-500 to-orange-400 text-white shadow-lg shadow-orange-500/20"
+                        : "text-slate-400 hover:bg-white/5 hover:text-orange-400")
+                    }
+                  >
+                    <span className="mr-1">
+                      💎
+                    </span>
+                    Top Up
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      if (!isJokiAvailable) {
+                        showMessage(
+                          "Game ini tidak tersedia untuk layanan joki.",
+                          "error"
+                        );
+                        return;
+                      }
+
+                      setService("joki");
+                    }}
+                    disabled={!isJokiAvailable}
+                    className={
+                      "rounded-xl px-3 py-3 text-sm font-black transition " +
+                      (service === "joki"
+                        ? "bg-gradient-to-r from-orange-500 to-orange-400 text-white shadow-lg shadow-orange-500/20"
+                        : isJokiAvailable
+                        ? "text-slate-400 hover:bg-white/5 hover:text-orange-400"
+                        : "cursor-not-allowed text-slate-700 opacity-60")
+                    }
+                  >
+                    <span className="mr-1">
+                      🏆
+                    </span>
+                    {isJokiAvailable
+                      ? "Joki"
+                      : "Joki Tidak Tersedia"}
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      setService("akun")
+                    }
+                    className={
+                      "rounded-xl px-3 py-3 text-sm font-black transition " +
+                      (service === "akun"
+                        ? "bg-gradient-to-r from-orange-500 to-orange-400 text-white shadow-lg shadow-orange-500/20"
+                        : "text-slate-400 hover:bg-white/5 hover:text-orange-400")
+                    }
+                  >
+                    <span className="mr-1">
+                      🎮
+                    </span>
+                    Akun
+                  </button>
 
                 </div>
+
+                {!isJokiAvailable && (
+                  <div className="mt-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-xs font-bold text-slate-500">
+                    ℹ️ Game ini hanya tersedia untuk Top Up dan Beli Akun. Layanan Joki tidak tersedia.
+                  </div>
+                )}
+
               </div>
 
               <div className="p-5 sm:p-6">
@@ -1705,7 +1808,8 @@ function App() {
                   </div>
                 )}
 
-                {service === "joki" && (
+                {service === "joki" &&
+                  isJokiAvailable && (
                   <div className="space-y-6">
 
                     {currentRanks.length ===
@@ -1754,8 +1858,7 @@ function App() {
                           }
                           options={currentRanks.filter(
                             (_, index) =>
-                              currentRankIndex <
-                                0 ||
+                              currentRankIndex < 0 ||
                               index >
                                 currentRankIndex
                           )}
