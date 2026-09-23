@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   GAMES,
   NOMINALS,
@@ -1249,7 +1249,7 @@ function App() {
                   }
                   className="hidden rounded-xl border border-white/10 bg-[#151820] px-4 py-2 text-sm font-bold text-slate-300 transition hover:border-orange-400/40 hover:bg-orange-500/10 hover:text-orange-400 sm:block"
                 >
-                  ðŸ“¦ Pesanan
+                  📦 Pesanan
                 </button>
 
                 <button
@@ -1342,7 +1342,7 @@ function App() {
                   }
                   className="rounded-xl bg-gradient-to-r from-orange-500 via-orange-400 to-amber-400 px-6 py-3.5 font-black text-white shadow-xl shadow-orange-500/20 transition hover:from-orange-400 hover:via-amber-400 hover:to-yellow-400"
                 >
-                  Mulai Pesan â†’
+                  Mulai Pesan →
                 </button>
 
                 <button
@@ -1361,9 +1361,9 @@ function App() {
               </div>
 
               <div className="mt-9 flex flex-wrap gap-x-7 gap-y-3 text-sm text-slate-500">
-                <span>âœ“ Proses mudah</span>
-                <span>âœ“ Harga transparan</span>
-                <span>âœ“ Status pesanan jelas</span>
+                <span>✓ Proses mudah</span>
+                <span>✓ Harga transparan</span>
+                <span>✓ Status pesanan jelas</span>
               </div>
 
             </div>
@@ -1396,7 +1396,7 @@ function App() {
           {safeGames.length === 0 ? (
             <div className="rounded-3xl border border-dashed border-white/10 bg-[#151820] p-10 text-center">
               <div className="text-4xl">
-                ðŸŽ®
+                🎮
               </div>
 
               <p className="mt-3 font-bold text-slate-400">
@@ -1467,11 +1467,11 @@ function App() {
 
                         {canJoki ? (
                           <span className="inline-flex rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[9px] font-black uppercase tracking-wide text-emerald-400">
-                            ðŸ† Bisa Joki
+                            🏆 Bisa Joki
                           </span>
                         ) : (
                           <span className="inline-flex rounded-md border border-white/10 bg-white/5 px-2 py-1 text-[9px] font-black uppercase tracking-wide text-slate-500">
-                            âœ• Tidak Bisa Joki
+                            ✕ Tidak Bisa Joki
                           </span>
                         )}
 
@@ -1555,7 +1555,7 @@ function App() {
                     }
                   >
                     <span className="mr-1">
-                      ðŸ’Ž
+                      💎
                     </span>
                     Top Up
                   </button>
@@ -1583,7 +1583,7 @@ function App() {
                     }
                   >
                     <span className="mr-1">
-                      ðŸ†
+                      🏆
                     </span>
                     {isJokiAvailable
                       ? "Joki"
@@ -1602,7 +1602,7 @@ function App() {
                     }
                   >
                     <span className="mr-1">
-                      ðŸŽ®
+                      🎮
                     </span>
                     Akun
                   </button>
@@ -1611,7 +1611,7 @@ function App() {
 
                 {!isJokiAvailable && (
                   <div className="mt-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-xs font-bold text-slate-500">
-                    â„¹ï¸ Game ini hanya tersedia untuk Top Up dan Beli Akun. Layanan Joki tidak tersedia.
+                    ℹ️ Game ini hanya tersedia untuk Top Up dan Beli Akun. Layanan Joki tidak tersedia.
                   </div>
                 )}
 
@@ -1880,7 +1880,7 @@ function App() {
 
                             <p className="mt-1 text-lg font-black text-orange-400">
                               {jokiTierDifference}{" "}
-                              tier Ã—{" "}
+                              tier ×{" "}
                               {formatRp(
                                 Number(
                                   JOKI_PRICE_PER_TIER?.[
@@ -1906,7 +1906,7 @@ function App() {
                     <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-4">
 
                       <p className="text-sm font-black text-amber-400">
-                        ðŸ” Data login akun
+                        🔐 Data login akun
                       </p>
 
                       <p className="mt-1 text-xs leading-5 text-slate-400">
@@ -2198,10 +2198,10 @@ function App() {
                   className="mt-7 w-full rounded-xl bg-gradient-to-r from-orange-500 via-orange-400 to-amber-400 px-5 py-4 font-black text-white shadow-xl shadow-orange-500/20 transition hover:from-orange-400 hover:via-amber-400 hover:to-yellow-400 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {loading
-                    ? "â³ Memproses..."
+                    ? "⏳ Memproses..."
                     : user
-                    ? "ðŸ›’ Buat Pesanan"
-                    : "ðŸ” Login untuk Memesan"}
+                    ? "🛒 Buat Pesanan"
+                    : "🔐 Login untuk Memesan"}
                 </button>
 
               </div>
@@ -2405,19 +2405,19 @@ function App() {
             <div className="grid gap-4 md:grid-cols-3">
 
               <Feature
-                icon="âš¡"
+                icon="⚡"
                 title="Proses Praktis"
                 text="Pilih layanan, isi data, lalu buat pesanan."
               />
 
               <Feature
-                icon="ðŸ”’"
+                icon="🔒"
                 title="Data Pesanan Terstruktur"
                 text="Informasi order tersimpan agar mudah dipantau."
               />
 
               <Feature
-                icon="ðŸ“¦"
+                icon="📦"
                 title="Pantau Pesanan"
                 text="Status pesanan dapat dilihat dari menu Pesanan Saya."
               />
@@ -2457,7 +2457,7 @@ function App() {
               <div className="rounded-3xl border border-dashed border-white/10 bg-[#151820] p-10 text-center">
 
                 <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-500/10 text-2xl">
-                  â­
+                  ⭐
                 </div>
 
                 <h3 className="mt-4 font-black text-slate-100">
@@ -2531,7 +2531,7 @@ function App() {
                           >
 
                             <span className="w-8 text-xs font-bold text-slate-400">
-                              {star}â˜…
+                              {star}★
                             </span>
 
                             <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/10">
@@ -2661,7 +2661,7 @@ function App() {
           <div className="text-center">
 
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-500/10 text-3xl">
-              ðŸ”
+              🔐
             </div>
 
             <h2 className="mt-4 text-2xl font-black text-white">
@@ -2747,7 +2747,7 @@ function App() {
           <div className="text-center">
 
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-500/10 text-3xl">
-              ðŸ‘¤
+              👤
             </div>
 
             <h2 className="mt-4 text-2xl font-black text-white">
@@ -2857,7 +2857,7 @@ function App() {
               disabled={loading}
               className="rounded-xl border border-white/10 bg-[#101319] px-4 py-2 text-sm font-bold text-slate-300 transition hover:border-orange-400/40 hover:bg-orange-500/10 hover:text-orange-400"
             >
-              ðŸ”„ Refresh
+              🔄 Refresh
             </button>
 
           </div>
@@ -2869,7 +2869,7 @@ function App() {
               <div className="rounded-2xl border border-dashed border-white/10 bg-[#101319] p-10 text-center">
 
                 <div className="text-4xl">
-                  ðŸ“­
+                  📭
                 </div>
 
                 <p className="mt-3 font-bold text-slate-500">
@@ -2882,7 +2882,7 @@ function App() {
                   }
                   className="mt-4 rounded-xl border border-orange-500/20 bg-orange-500/10 px-4 py-2 text-xs font-black text-orange-400 transition hover:bg-orange-500/20"
                 >
-                  ðŸ”„ Coba Refresh
+                  🔄 Coba Refresh
                 </button>
 
               </div>
@@ -2930,7 +2930,7 @@ function App() {
           <div className="text-center">
 
             <div className="text-4xl">
-              â­
+              ⭐
             </div>
 
             <h2 className="mt-3 text-2xl font-black text-white">
@@ -2965,7 +2965,7 @@ function App() {
                       : "text-slate-700")
                   }
                 >
-                  â˜…
+                  ★
                 </button>
               )
             )}
@@ -2996,7 +2996,280 @@ function App() {
 
         </Modal>
       )}
+
+      <BarrChatbot />
+
     </div>
+  );
+}
+
+function BarrChatbot() {
+  const [open, setOpen] = useState(false);
+
+  const [messages, setMessages] = useState([
+    {
+      role: "bot",
+      text: "Halo! 👋 Aku BarrAssist, AI assistant BarrStore. Tanya apa aja tentang Top Up, Joki, Akun, atau pesanan.",
+    },
+  ]);
+
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const quickQuestions = [
+    "Cara Top Up?",
+    "Cara Joki?",
+    "Cara beli akun?",
+    "Cara cek pesanan?",
+  ];
+
+  async function sendMessage(text) {
+    const cleanText = String(text || "").trim();
+
+    if (!cleanText || loading) return;
+
+    const userMessage = {
+      role: "user",
+      text: cleanText,
+    };
+
+    const historyForApi = [
+      ...messages
+        .filter(
+          (message) =>
+            (message.role === "user" ||
+              message.role === "bot") &&
+            typeof message.text === "string"
+        )
+        .map((message) => ({
+          role:
+            message.role === "bot"
+              ? "assistant"
+              : "user",
+          content: message.text,
+        })),
+      {
+        role: "user",
+        content: cleanText,
+      },
+    ].slice(-20);
+
+    setMessages((prev) => [
+      ...prev,
+      userMessage,
+    ]);
+    setInput("");
+    setLoading(true);
+
+    try {
+      const response = await fetch(
+        `${API_URL}/api/chat`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            messages: historyForApi,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data?.success) {
+        throw new Error(
+          data?.message ||
+            "BarrAssist sedang tidak bisa menjawab."
+        );
+      }
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "bot",
+          text:
+            data.reply ||
+            "Maaf, BarrAssist belum mendapatkan jawaban.",
+        },
+      ]);
+    } catch (error) {
+      console.error("BARRASSIST FRONTEND ERROR:", error);
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "bot",
+          text:
+            "Maaf cuy 😅 BarrAssist lagi mengalami gangguan. Coba lagi sebentar, atau hubungi Admin lewat WhatsApp/Telegram di bawah.",
+        },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    sendMessage(input);
+  }
+
+  return (
+    <>
+      {!open && (
+        <button
+          onClick={() => setOpen(true)}
+          className="fixed bottom-5 right-5 z-[70] flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 text-2xl shadow-2xl shadow-orange-500/30 transition hover:scale-105 active:scale-95"
+          aria-label="Buka BarrAssist"
+        >
+          💬
+        </button>
+      )}
+
+      {open && (
+        <div className="fixed bottom-4 right-4 z-[70] flex w-[calc(100vw-2rem)] max-w-[380px] flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#11141b] shadow-2xl shadow-black/50">
+          <div className="flex items-center justify-between border-b border-white/10 bg-gradient-to-r from-orange-500/10 to-transparent px-5 py-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-amber-300 text-xl shadow-lg shadow-orange-500/20">
+                🤖
+              </div>
+
+              <div>
+                <p className="font-black text-white">
+                  BarrAssist
+                </p>
+
+                <div className="mt-0.5 flex items-center gap-1.5">
+                  <span
+                    className={
+                      "h-2 w-2 rounded-full " +
+                      (loading
+                        ? "bg-amber-400"
+                        : "bg-emerald-400")
+                    }
+                  />
+
+                  <span className="text-[11px] font-bold text-slate-500">
+                    {loading
+                      ? "Sedang berpikir..."
+                      : "AI Online • BarrStore"}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setOpen(false)}
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 text-lg text-slate-500 transition hover:bg-orange-500/10 hover:text-orange-400"
+              aria-label="Tutup BarrAssist"
+            >
+              ×
+            </button>
+          </div>
+
+          <div className="flex max-h-[420px] min-h-[280px] flex-col gap-3 overflow-y-auto p-4">
+            {messages.map((message, index) => (
+              <div
+                key={index}
+                className={
+                  "flex " +
+                  (message.role === "user"
+                    ? "justify-end"
+                    : "justify-start")
+                }
+              >
+                <div
+                  className={
+                    "max-w-[82%] whitespace-pre-wrap rounded-2xl px-4 py-3 text-sm leading-6 " +
+                    (message.role === "user"
+                      ? "rounded-br-md bg-orange-500 text-white"
+                      : "rounded-bl-md border border-white/10 bg-[#1a1e27] text-slate-300")
+                  }
+                >
+                  {message.text}
+                </div>
+              </div>
+            ))}
+
+            {loading && (
+              <div className="flex justify-start">
+                <div className="rounded-2xl rounded-bl-md border border-white/10 bg-[#1a1e27] px-4 py-3 text-sm text-slate-500">
+                  BarrAssist sedang berpikir...
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="border-t border-white/10 px-4 pt-3">
+            <p className="mb-2 text-[10px] font-black uppercase tracking-wider text-slate-600">
+              Pertanyaan cepat
+            </p>
+
+            <div className="flex gap-2 overflow-x-auto pb-2">
+              {quickQuestions.map((question) => (
+                <button
+                  key={question}
+                  onClick={() => sendMessage(question)}
+                  disabled={loading}
+                  className="shrink-0 rounded-xl border border-orange-500/20 bg-orange-500/5 px-3 py-2 text-[11px] font-bold text-orange-400 transition hover:bg-orange-500/10 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {question}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 border-t border-white/10 px-4 pt-3">
+            <a
+              href="https://wa.me/6282218855158"
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center justify-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2.5 text-xs font-black text-emerald-400 transition hover:bg-emerald-500/15"
+            >
+              🟢 WhatsApp Admin
+            </a>
+
+            <a
+              href="https://t.me/BarrSlwly"
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center justify-center gap-2 rounded-xl border border-sky-500/20 bg-sky-500/10 px-3 py-2.5 text-xs font-black text-sky-400 transition hover:bg-sky-500/15"
+            >
+              🔵 Telegram Admin
+            </a>
+          </div>
+
+          <form
+            onSubmit={handleSubmit}
+            className="flex gap-2 border-t border-white/10 p-3"
+          >
+            <input
+              value={input}
+              onChange={(e) =>
+                setInput(e.target.value)
+              }
+              placeholder={
+                loading
+                  ? "BarrAssist sedang berpikir..."
+                  : "Tulis pertanyaan..."
+              }
+              disabled={loading}
+              className="min-w-0 flex-1 rounded-xl border border-white/10 bg-[#0b0e13] px-4 py-3 text-sm text-white outline-none placeholder:text-slate-600 focus:border-orange-400 disabled:cursor-not-allowed disabled:opacity-60"
+            />
+
+            <button
+              type="submit"
+              disabled={
+                loading || !input.trim()
+              }
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-orange-500 text-lg text-white transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              ➤
+            </button>
+          </form>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -3237,7 +3510,7 @@ function Modal({
             onClick={onClose}
             className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 text-slate-500 transition hover:bg-orange-500/10 hover:text-orange-400"
           >
-            Ã—
+            ×
           </button>
 
         </div>
@@ -3334,7 +3607,7 @@ function OrderCard({
           onClick={onReview}
           className="mt-4 rounded-xl border border-orange-500/20 bg-orange-500/10 px-4 py-2 text-xs font-black text-orange-400 transition hover:bg-orange-500/20"
         >
-          â­ Beri Rating
+          ⭐ Beri Rating
         </button>
       )}
 
@@ -3384,8 +3657,8 @@ function renderStars(rating) {
   return [1, 2, 3, 4, 5]
     .map((star) =>
       star <= rounded
-        ? "â˜…"
-        : "â˜†"
+        ? "★"
+        : "☆"
     )
     .join("");
 }
