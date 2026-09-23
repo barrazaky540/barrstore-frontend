@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   GAMES,
   NOMINALS,
@@ -1249,7 +1249,7 @@ function App() {
                   }
                   className="hidden rounded-xl border border-white/10 bg-[#151820] px-4 py-2 text-sm font-bold text-slate-300 transition hover:border-orange-400/40 hover:bg-orange-500/10 hover:text-orange-400 sm:block"
                 >
-                  ðŸ“¦ Pesanan
+                  📦 Pesanan
                 </button>
 
                 <button
@@ -1342,7 +1342,7 @@ function App() {
                   }
                   className="rounded-xl bg-gradient-to-r from-orange-500 via-orange-400 to-amber-400 px-6 py-3.5 font-black text-white shadow-xl shadow-orange-500/20 transition hover:from-orange-400 hover:via-amber-400 hover:to-yellow-400"
                 >
-                  Mulai Pesan â†’
+                  Mulai Pesan →
                 </button>
 
                 <button
@@ -1361,9 +1361,9 @@ function App() {
               </div>
 
               <div className="mt-9 flex flex-wrap gap-x-7 gap-y-3 text-sm text-slate-500">
-                <span>âœ“ Proses mudah</span>
-                <span>âœ“ Harga transparan</span>
-                <span>âœ“ Status pesanan jelas</span>
+                <span>✓ Proses mudah</span>
+                <span>✓ Harga transparan</span>
+                <span>✓ Status pesanan jelas</span>
               </div>
 
             </div>
@@ -1396,7 +1396,7 @@ function App() {
           {safeGames.length === 0 ? (
             <div className="rounded-3xl border border-dashed border-white/10 bg-[#151820] p-10 text-center">
               <div className="text-4xl">
-                ðŸŽ®
+                🎮
               </div>
 
               <p className="mt-3 font-bold text-slate-400">
@@ -1467,11 +1467,11 @@ function App() {
 
                         {canJoki ? (
                           <span className="inline-flex rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[9px] font-black uppercase tracking-wide text-emerald-400">
-                            ðŸ† Bisa Joki
+                            🏆 Bisa Joki
                           </span>
                         ) : (
                           <span className="inline-flex rounded-md border border-white/10 bg-white/5 px-2 py-1 text-[9px] font-black uppercase tracking-wide text-slate-500">
-                            âœ• Tidak Bisa Joki
+                            ✕ Tidak Bisa Joki
                           </span>
                         )}
 
@@ -1555,7 +1555,7 @@ function App() {
                     }
                   >
                     <span className="mr-1">
-                      ðŸ’Ž
+                      💎
                     </span>
                     Top Up
                   </button>
@@ -1583,7 +1583,7 @@ function App() {
                     }
                   >
                     <span className="mr-1">
-                      ðŸ†
+                      🏆
                     </span>
                     {isJokiAvailable
                       ? "Joki"
@@ -1602,7 +1602,7 @@ function App() {
                     }
                   >
                     <span className="mr-1">
-                      ðŸŽ®
+                      🎮
                     </span>
                     Akun
                   </button>
@@ -1611,7 +1611,7 @@ function App() {
 
                 {!isJokiAvailable && (
                   <div className="mt-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-xs font-bold text-slate-500">
-                    â„¹ï¸ Game ini hanya tersedia untuk Top Up dan Beli Akun. Layanan Joki tidak tersedia.
+                    ℹ️ Game ini hanya tersedia untuk Top Up dan Beli Akun. Layanan Joki tidak tersedia.
                   </div>
                 )}
 
@@ -1880,7 +1880,7 @@ function App() {
 
                             <p className="mt-1 text-lg font-black text-orange-400">
                               {jokiTierDifference}{" "}
-                              tier Ã—{" "}
+                              tier ×{" "}
                               {formatRp(
                                 Number(
                                   JOKI_PRICE_PER_TIER?.[
@@ -1906,7 +1906,7 @@ function App() {
                     <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-4">
 
                       <p className="text-sm font-black text-amber-400">
-                        ðŸ” Data login akun
+                        🔐 Data login akun
                       </p>
 
                       <p className="mt-1 text-xs leading-5 text-slate-400">
@@ -2198,10 +2198,10 @@ function App() {
                   className="mt-7 w-full rounded-xl bg-gradient-to-r from-orange-500 via-orange-400 to-amber-400 px-5 py-4 font-black text-white shadow-xl shadow-orange-500/20 transition hover:from-orange-400 hover:via-amber-400 hover:to-yellow-400 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {loading
-                    ? "â³ Memproses..."
+                    ? "⏳ Memproses..."
                     : user
-                    ? "ðŸ›’ Buat Pesanan"
-                    : "ðŸ” Login untuk Memesan"}
+                    ? "🛒 Buat Pesanan"
+                    : "🔐 Login untuk Memesan"}
                 </button>
 
               </div>
@@ -2405,19 +2405,19 @@ function App() {
             <div className="grid gap-4 md:grid-cols-3">
 
               <Feature
-                icon="âš¡"
+                icon="⚡"
                 title="Proses Praktis"
                 text="Pilih layanan, isi data, lalu buat pesanan."
               />
 
               <Feature
-                icon="ðŸ”’"
+                icon="🔒"
                 title="Data Pesanan Terstruktur"
                 text="Informasi order tersimpan agar mudah dipantau."
               />
 
               <Feature
-                icon="ðŸ“¦"
+                icon="📦"
                 title="Pantau Pesanan"
                 text="Status pesanan dapat dilihat dari menu Pesanan Saya."
               />
@@ -2457,7 +2457,7 @@ function App() {
               <div className="rounded-3xl border border-dashed border-white/10 bg-[#151820] p-10 text-center">
 
                 <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-500/10 text-2xl">
-                  â­
+                  ⭐
                 </div>
 
                 <h3 className="mt-4 font-black text-slate-100">
@@ -2531,7 +2531,7 @@ function App() {
                           >
 
                             <span className="w-8 text-xs font-bold text-slate-400">
-                              {star}â˜…
+                              {star}★
                             </span>
 
                             <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/10">
@@ -2661,7 +2661,7 @@ function App() {
           <div className="text-center">
 
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-500/10 text-3xl">
-              ðŸ”
+              🔐
             </div>
 
             <h2 className="mt-4 text-2xl font-black text-white">
@@ -2747,7 +2747,7 @@ function App() {
           <div className="text-center">
 
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-500/10 text-3xl">
-              ðŸ‘¤
+              👤
             </div>
 
             <h2 className="mt-4 text-2xl font-black text-white">
@@ -2857,7 +2857,7 @@ function App() {
               disabled={loading}
               className="rounded-xl border border-white/10 bg-[#101319] px-4 py-2 text-sm font-bold text-slate-300 transition hover:border-orange-400/40 hover:bg-orange-500/10 hover:text-orange-400"
             >
-              ðŸ”„ Refresh
+              🔄 Refresh
             </button>
 
           </div>
@@ -2869,7 +2869,7 @@ function App() {
               <div className="rounded-2xl border border-dashed border-white/10 bg-[#101319] p-10 text-center">
 
                 <div className="text-4xl">
-                  ðŸ“­
+                  📭
                 </div>
 
                 <p className="mt-3 font-bold text-slate-500">
@@ -2882,7 +2882,7 @@ function App() {
                   }
                   className="mt-4 rounded-xl border border-orange-500/20 bg-orange-500/10 px-4 py-2 text-xs font-black text-orange-400 transition hover:bg-orange-500/20"
                 >
-                  ðŸ”„ Coba Refresh
+                  🔄 Coba Refresh
                 </button>
 
               </div>
@@ -2930,7 +2930,7 @@ function App() {
           <div className="text-center">
 
             <div className="text-4xl">
-              â­
+              ⭐
             </div>
 
             <h2 className="mt-3 text-2xl font-black text-white">
@@ -2965,7 +2965,7 @@ function App() {
                       : "text-slate-700")
                   }
                 >
-                  â˜…
+                  ★
                 </button>
               )
             )}
@@ -3237,7 +3237,7 @@ function Modal({
             onClick={onClose}
             className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 text-slate-500 transition hover:bg-orange-500/10 hover:text-orange-400"
           >
-            Ã—
+            ×
           </button>
 
         </div>
@@ -3334,7 +3334,7 @@ function OrderCard({
           onClick={onReview}
           className="mt-4 rounded-xl border border-orange-500/20 bg-orange-500/10 px-4 py-2 text-xs font-black text-orange-400 transition hover:bg-orange-500/20"
         >
-          â­ Beri Rating
+          ⭐ Beri Rating
         </button>
       )}
 
@@ -3384,8 +3384,8 @@ function renderStars(rating) {
   return [1, 2, 3, 4, 5]
     .map((star) =>
       star <= rounded
-        ? "â˜…"
-        : "â˜†"
+        ? "★"
+        : "☆"
     )
     .join("");
 }
